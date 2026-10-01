@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block baslik %}Okuma Oyunu{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stil.css') }}">
+</head>
+<body>
+
+    <!-- Üst Menü -->
+    <header class="ust-menu">
+        <div class="header-sol">
+            <!-- Sol boş alan -->
+        </div>
+        <div class="logo-alani">
+            <div class="logo">🎮 GAM-DEP</div>
+            <div class="logo-alt">Okuma Güçlendirme Oyun Programı</div>
+        </div>
+        <div class="header-sag">
+            <nav>
+                {% block menu %}
+                <a href="/">Ana Sayfa</a>
+                {% endblock %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Ana İçerik (değişken kısım) -->
+    <main class="icerik">
+        {% block icerik %}{% endblock %}
+    </main>
+
+    <!-- Alt Bilgi -->
+    <footer class="alt-bilgi">
+        <div class="footer-baslik">GAM-DEP — Okuma Güçlendirme Oyunu</div>
+        <div class="footer-tasarimci">
+            👨‍💻 <strong>Halil İlbey ÖZKAN</strong> tarafından tasarlanmıştır
+        </div>
+        <div class="footer-iletisim">
+            📧 <a href="mailto:hilbey@gmail.com">hilbey@gmail.com</a>
+        </div>
+        <div class="footer-telif">© 2026 Tüm hakları saklıdır.</div>
+    </footer>
+    
+</body>
+</html>

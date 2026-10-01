@@ -1,0 +1,20 @@
+# Sanal ortam
+venv/
+env/
+
+# Python önbellek dosyaları
+__pycache__/
+*.pyc
+
+# Veritabanı (yerel kullanım için)
+oyun.db
+
+# VS Code ayarları
+.vscode/
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
+
+# Test dosyaları (isteğe bağlı)
+test_rozet.py

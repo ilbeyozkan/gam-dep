@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block baslik %}Admin Paneli — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="admin-sayfa">
+
+    <!-- Başlık -->
+    <div class="panel-baslik">
+        <div class="panel-emoji">👑</div>
+        <div class="panel-bilgi">
+            <h1>Admin Paneli</h1>
+            <p>Hoş geldin, <strong>{{ admin_adi }}</strong></p>
+        </div>
+        <a href="/siralama" class="panel-aksiyon-btn">
+            🏆 Sıralamayı Gör
+        </a>
+    </div>
+
+    <!-- Bildirimler -->
+    {% if request.args.get('mesaj') %}
+        <div class="bildirim bildirim-basari">✅ {{ request.args.get('mesaj') }}</div>
+    {% endif %}
+    {% if request.args.get('hata') %}
+        <div class="bildirim bildirim-hata">⚠️ {{ request.args.get('hata') }}</div>
+    {% endif %}
+
+    <!-- İstatistik Kartları -->
+    <div class="admin-istatistik">
+        <div class="admin-stat-kart">
+            <div class="admin-stat-emoji">🧑‍🎓</div>
+            <div class="admin-stat-sayi">{{ ogrenci_sayi }}</div>
+            <div class="admin-stat-etiket">Öğrenci</div>
+        </div>
+        <div class="admin-stat-kart">
+            <div class="admin-stat-emoji">👨‍🏫</div>
+            <div class="admin-stat-sayi">{{ ogretmen_sayi }}</div>
+            <div class="admin-stat-etiket">Öğretmen</div>
+        </div>
+        <div class="admin-stat-kart">
+            <div class="admin-stat-emoji">🎮</div>
+            <div class="admin-stat-sayi">{{ toplam_oyun }}</div>
+            <div class="admin-stat-etiket">Oynanan Oyun</div>
+        </div>
+        <div class="admin-stat-kart">
+            <div class="admin-stat-emoji">🏅</div>
+            <div class="admin-stat-sayi">{{ toplam_rozet }}</div>
+            <div class="admin-stat-etiket">Rozet</div>
+        </div>
+    </div>
+
+    <!-- Yeni Kullanıcı Ekleme Formu -->
+    <h2 class="liste-baslik">➕ Yeni Kullanıcı Ekle</h2>
+
+    <div class="ekle-formu">
+        <form method="POST" action="/admin/kullanici-ekle">
+            <div class="form-satir">
+                <div class="form-alan">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" name="kullanici_adi" required placeholder="ornek: ayse" minlength="3">
+                </div>
+                <div class="form-alan">
+                    <label>Şifre</label>
+                    <input type="text" name="sifre" required placeholder="ornek: 1234" minlength="3">
+                </div>
+            </div>
+
+            <div class="form-satir">
+                <div class="form-alan">
+                    <label>Ad Soyad</label>
+                    <input type="text" name="ad_soyad" required placeholder="ornek: Ayşe Demir">
+                </div>
+                <div class="form-alan">
+                    <label>Rol</label>
+                    <select name="rol" required>
+                        <option value="ogrenci">🎓 Öğrenci</option>
+                        <option value="ogretmen">👨‍🏫 Öğretmen</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="ekle-btn">+ Kullanıcı Ekle</button>
+        </form>
+    </div>
+
+    <!-- Kullanıcı Listesi -->
+    <h2 class="liste-baslik">👥 Kullanıcılar ({{ kullanicilar|length }})</h2>
+
+    <div class="admin-tablo-wrapper">
+        <table class="admin-tablo">
+            <thead>
+                <tr>
+                    <th>Avatar</th>
+                    <th>Ad Soyad</th>
+                    <th>Kullanıcı Adı</th>
+                    <th>Rol</th>
+                    <th>Kayıt Tarihi</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kullanicilar %}
+                <tr class="rol-{{ k.rol }}">
+                    <td class="td-avatar">
+                        {% if k.rol == 'admin' %}👑
+                        {% elif k.rol == 'ogretmen' %}👨‍🏫
+                        {% else %}🧑‍🎓
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ k.ad_soyad }}</strong></td>
+                    <td class="td-username">@{{ k.kullanici_adi }}</td>
+                    <td>
+                        <span class="rol-etiket rol-{{ k.rol }}">
+                            {% if k.rol == 'admin' %}Admin
+                            {% elif k.rol == 'ogretmen' %}Öğretmen
+                            {% else %}Öğrenci
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="td-tarih">{{ k.olusturma_tarihi }}</td>
+                    <td class="td-islem">
+                        {% if k.rol != 'admin' %}
+                        <form method="POST" action="/admin/sifre-sifirla/{{ k.id }}" style="display:inline;"
+                              onsubmit="return confirm('{{ k.ad_soyad }} kullanıcısının şifresi 1234 yapılsın mı?');">
+                            <button type="submit" class="kucuk-btn sifirla-btn" title="Şifre sıfırla">🔑</button>
+                        </form>
+                        <form method="POST" action="/admin/kullanici-sil/{{ k.id }}" style="display:inline;"
+                              onsubmit="return confirm('{{ k.ad_soyad }} kullanıcısı ve tüm ilerlemesi silinsin mi? Bu işlem geri alınamaz!');">
+                            <button type="submit" class="kucuk-btn sil-btn" title="Sil">🗑️</button>
+                        </form>
+                        {% else %}
+                        <span class="korunmus-yazi">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Oyun Bilgisi Kartı (bilgi amaçlı) -->
+         <!-- Oyun Atama Bölümü -->
+    <h2 class="liste-baslik">🎮 Bölümlere Oyun Ata</h2>
+
+    <div class="atama-bolum-wrapper">
+        <p class="atama-bilgi-yazi">
+            Her bölüm ve ara bölüm için tıklayarak oyun atayabilirsin. Atanan oyunlar öğrenciye bu sırayla gösterilir.
+        </p>
+
+        {% for b in bolumler %}
+        <div class="atama-bolum-kart">
+            <div class="atama-bolum-baslik">
+                <img src="{{ url_for('static', filename='img/' + b.resim) }}" alt="{{ b.ad }}">
+                <div>
+                    <strong>Bölüm {{ b.no }}: {{ b.ad }}</strong>
+                </div>
+            </div>
+
+            <div class="atama-ara-grid">
+                {% for ara in range(1, ara_sayisi + 1) %}
+                {% set sayi = atama_sayilari.get(b.no, {}).get(ara, 0) %}
+                <a href="/admin/oyun-atama/{{ b.no }}/{{ ara }}"
+                   class="atama-ara-btn {% if sayi > 0 %}atama-dolu{% else %}atama-bos{% endif %}">
+                    <div class="atama-ara-no">Görev {{ ara }}</div>
+                    {% if sayi > 0 %}
+                        <div class="atama-ara-sayi">🎮 {{ sayi }} oyun</div>
+                    {% else %}
+                        <div class="atama-ara-sayi bos">(boş)</div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="liste-baslik">🎮 Sistemdeki Oyunlar ({{ oyunlar|length }})</h2>
+    <h2 class="liste-baslik">🎮 Sistemdeki Oyunlar ({{ oyunlar|length }})</h2>
+
+    <div class="oyun-bilgi-grid">
+        {% for no, o in oyunlar.items() %}
+        <div class="oyun-bilgi-kart">
+            <div class="oyun-bilgi-emoji">{{ o.emoji }}</div>
+            <div class="oyun-bilgi-no">Oyun {{ no }}</div>
+            <div class="oyun-bilgi-ad">{{ o.ad }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="geri-buton-alani">
+        <a href="/cikis" class="geri-btn">🚪 Çıkış Yap</a>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block baslik %}Öğretmen Paneli — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="ogretmen-sayfa">
+
+    <!-- Başlık -->
+    <div class="panel-baslik">
+        <div class="panel-emoji">👨‍🏫</div>
+        <div class="panel-bilgi">
+            <h1>Öğretmen Paneli</h1>
+            <p>Hoş geldin, <strong>{{ ogretmen_adi }}</strong></p>
+        </div>
+        <a href="/siralama" class="panel-aksiyon-btn">
+            🏆 Sınıf Sıralaması
+        </a>
+    </div>
+
+    <!-- İstatistik Özet -->
+    <div class="ozet-kutusu">
+        <div class="ozet-kart">
+            <div class="ozet-emoji">👥</div>
+            <div class="ozet-sayi">{{ ogrenciler|length }}</div>
+            <div class="ozet-etiket">Toplam Öğrenci</div>
+        </div>
+        <div class="ozet-kart">
+            <div class="ozet-emoji">⭐</div>
+            <div class="ozet-sayi">
+                {% set toplam = namespace(d=0) %}
+                {% for o in ogrenciler %}{% set toplam.d = toplam.d + o.toplam_yildiz %}{% endfor %}
+                {{ toplam.d }}
+            </div>
+            <div class="ozet-etiket">Toplam Yıldız</div>
+        </div>
+        <div class="ozet-kart">
+            <div class="ozet-emoji">🏅</div>
+            <div class="ozet-sayi">
+                {% set toplam_r = namespace(d=0) %}
+                {% for o in ogrenciler %}{% set toplam_r.d = toplam_r.d + o.rozet_sayisi %}{% endfor %}
+                {{ toplam_r.d }}
+            </div>
+            <div class="ozet-etiket">Toplam Rozet</div>
+        </div>
+    </div>
+
+    <!-- Sınıf Listesi -->
+    <h2 class="liste-baslik">📋 Sınıfım</h2>
+
+    {% if ogrenciler %}
+    <div class="ogrenci-listesi">
+        {% for o in ogrenciler %}
+        <div class="ogrenci-kart">
+            <div class="ogr-avatar">🧑‍🎓</div>
+
+            <div class="ogr-bilgi">
+                <div class="ogr-ad">{{ o.ad_soyad }}</div>
+                <div class="ogr-kullanici">@{{ o.kullanici_adi }}</div>
+                <div class="ogr-rutbe">{{ o.rutbe }}</div>
+            </div>
+
+            <div class="ogr-istatistik">
+                <div class="istatistik-item">
+                    <span class="is-ikon">⭐</span>
+                    <span class="is-sayi">{{ o.toplam_yildiz }}</span>
+                </div>
+                <div class="istatistik-item">
+                    <span class="is-ikon">🏅</span>
+                    <span class="is-sayi">{{ o.rozet_sayisi }}</span>
+                </div>
+                <div class="istatistik-item">
+                    <span class="is-ikon">✅</span>
+                    <span class="is-sayi">{{ o.biten_bolum_sayisi }}/8</span>
+                </div>
+            </div>
+
+            <div class="ogr-konum">
+                <div class="konum-etiket">Şu An:</div>
+                <div class="konum-deger">{{ o.konum }}</div>
+            </div>
+
+            <a href="/ogretmen/ogrenci/{{ o.id }}" class="detay-btn">Detay →</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bos-mesaj-panel">
+        <p>📭 Henüz öğrenci yok.</p>
+        <p>Admin panelinden öğrenci eklenmesi gerekiyor.</p>
+    </div>
+    {% endif %}
+
+    <div class="geri-buton-alani">
+        <a href="/cikis" class="geri-btn">🚪 Çıkış Yap</a>
+    </div>
+
+</div>
+
+{% endblock %}

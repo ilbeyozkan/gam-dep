@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block baslik %}Haftalık Özet — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<a href="/harita">🗺️ Haritaya Dön</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="haftalik-sayfa">
+
+    <!-- Başlık -->
+    <div class="haftalik-baslik-alani">
+        <div class="haftalik-ikon">📊</div>
+        <h1>Bu Haftan</h1>
+        <p>{{ ad_soyad }} — Son 7 günün özeti</p>
+    </div>
+
+    <!-- Özet Kartları -->
+    <div class="haftalik-ozet-grid">
+        <div class="haftalik-ozet-kart kart-yildiz">
+            <div class="ozet-kart-emoji">⭐</div>
+            <div class="ozet-kart-sayi">{{ toplam_yildiz }}</div>
+            <div class="ozet-kart-etiket">Yıldız</div>
+        </div>
+
+        <div class="haftalik-ozet-kart kart-oyun">
+            <div class="ozet-kart-emoji">🎮</div>
+            <div class="ozet-kart-sayi">{{ toplam_oyun }}</div>
+            <div class="ozet-kart-etiket">Oyun</div>
+        </div>
+
+        <div class="haftalik-ozet-kart kart-rozet">
+            <div class="ozet-kart-emoji">🏅</div>
+            <div class="ozet-kart-sayi">{{ toplam_rozet }}</div>
+            <div class="ozet-kart-etiket">Rozet</div>
+        </div>
+
+        <div class="haftalik-ozet-kart kart-gun">
+            <div class="ozet-kart-emoji">📅</div>
+            <div class="ozet-kart-sayi">{{ oynanan_gun }}<span class="kart-alt-sayi">/7</span></div>
+            <div class="ozet-kart-etiket">Aktif Gün</div>
+        </div>
+    </div>
+
+    <!-- Grafik -->
+    <h2 class="haftalik-bolum-baslik">📈 Günlük Yıldızların</h2>
+
+    <div class="haftalik-grafik-karti">
+        <div class="grafik-barlar">
+            {% for g in gunler %}
+            <div class="grafik-bar-grup {% if g.tarih == gunler[-1].tarih %}bugun-grup{% endif %}">
+                <div class="grafik-yildiz-sayi">
+                    {% if g.yildiz > 0 %}⭐{{ g.yildiz }}{% else %}—{% endif %}
+                </div>
+                <div class="grafik-bar-wrapper">
+                    <div class="grafik-bar {% if g.yildiz == 0 %}bar-bos{% endif %}"
+                         style="height: {{ g.yuzde if g.yuzde > 5 else 5 }}%;">
+                    </div>
+                </div>
+                <div class="grafik-gun-kisa">{{ g.kisa }}</div>
+                <div class="grafik-gun-tarih">{{ g.tarih[8:] }}.{{ g.tarih[5:7] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Günlük Detay Tablosu -->
+    <h2 class="haftalik-bolum-baslik">📋 Günlük Detay</h2>
+
+    <div class="haftalik-tablo-wrapper">
+        <table class="haftalik-tablo">
+            <thead>
+                <tr>
+                    <th>Gün</th>
+                    <th>Tarih</th>
+                    <th>⭐ Yıldız</th>
+                    <th>🎮 Oyun</th>
+                    <th>🏅 Rozet</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in gunler %}
+                <tr class="{% if g.tarih == gunler[-1].tarih %}tablo-bugun{% endif %} {% if g.oyun == 0 %}tablo-bos{% endif %}">
+                    <td class="td-gun">
+                        <strong>{{ g.kisa }}</strong>
+                        {% if g.tarih == gunler[-1].tarih %}
+                            <span class="bugun-etiket">BUGÜN</span>
+                        {% endif %}
+                    </td>
+                    <td class="td-tarih">{{ g.tarih[8:] }}.{{ g.tarih[5:7] }}.{{ g.tarih[0:4] }}</td>
+                    <td class="td-yildiz">
+                        {% if g.yildiz > 0 %}⭐ {{ g.yildiz }}{% else %}<span class="bos-deger">—</span>{% endif %}
+                    </td>
+                    <td class="td-oyun">
+                        {% if g.oyun > 0 %}🎮 {{ g.oyun }}{% else %}<span class="bos-deger">—</span>{% endif %}
+                    </td>
+                    <td class="td-rozet">
+                        {% if g.rozet > 0 %}🏅 {{ g.rozet }}{% else %}<span class="bos-deger">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Ekstra Bilgiler -->
+    {% if en_iyi_gun and en_iyi_gun.yildiz > 0 %}
+    <div class="haftalik-ekstra-kutu">
+        <div class="ekstra-emoji">🏆</div>
+        <div class="ekstra-bilgi">
+            <div class="ekstra-baslik">Haftanın En İyi Günü</div>
+            <div class="ekstra-aciklama">
+                <strong>{{ en_iyi_gun.kisa }}</strong> ({{ en_iyi_gun.tarih[8:] }}.{{ en_iyi_gun.tarih[5:7] }})
+                → ⭐ {{ en_iyi_gun.yildiz }} yıldız kazandın!
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Motivasyon Mesajı -->
+    <div class="haftalik-mesaj">
+        {% if toplam_oyun == 0 %}
+            <p>💪 Bu hafta henüz oyun oynamadın. Hadi başla!</p>
+        {% elif toplam_oyun < 5 %}
+            <p>🌱 Güzel bir başlangıç! Biraz daha gayretle harika olacak.</p>
+        {% elif toplam_oyun < 15 %}
+            <p>🔥 Çok iyi gidiyorsun! Bu tempoyu koru.</p>
+        {% elif toplam_oyun < 30 %}
+            <p>🏆 Muhteşem bir hafta! Sen bir yıldızsın.</p>
+        {% else %}
+            <p>👑 Efsanevi bir hafta! Bu kadar çalışmak takdire şayan.</p>
+        {% endif %}
+    </div>
+
+    <div class="geri-buton-alani">
+        <a href="/harita" class="geri-btn">← Haritaya Dön</a>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gokyuzu4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#81D4FA"/>
+      <stop offset="100%" stop-color="#E1F5FE"/>
+    </linearGradient>
+    <linearGradient id="gol" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4FC3F7"/>
+      <stop offset="100%" stop-color="#0277BD"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Gökyüzü -->
+  <rect width="400" height="300" fill="url(#gokyuzu4)"/>
+  
+  <!-- Güneş -->
+  <circle cx="320" cy="70" r="28" fill="#FFD54F"/>
+  <circle cx="320" cy="70" r="40" fill="#FFD54F" opacity="0.3"/>
+  
+  <!-- Bulutlar -->
+  <ellipse cx="80" cy="60" rx="35" ry="14" fill="white" opacity="0.9"/>
+  <ellipse cx="120" cy="55" rx="30" ry="16" fill="white" opacity="0.9"/>
+  <ellipse cx="160" cy="62" rx="25" ry="12" fill="white" opacity="0.85"/>
+  
+  <ellipse cx="220" cy="100" rx="25" ry="10" fill="white" opacity="0.7"/>
+  <ellipse cx="250" cy="95" rx="20" ry="12" fill="white" opacity="0.75"/>
+  
+  <!-- Arka dağlar -->
+  <polygon points="0,180 80,110 160,180" fill="#7E9B8F"/>
+  <polygon points="240,180 320,100 400,180" fill="#7E9B8F"/>
+  
+  <!-- Yeşil alan -->
+  <rect y="180" width="400" height="40" fill="#7CB342"/>
+  
+  <!-- Göl -->
+  <ellipse cx="200" cy="230" rx="180" ry="55" fill="url(#gol)"/>
+  
+  <!-- Göl yansımaları -->
+  <ellipse cx="200" cy="215" rx="130" ry="15" fill="#4FC3F7" opacity="0.5"/>
+  <ellipse cx="200" cy="235" rx="150" ry="12" fill="#81D4FA" opacity="0.3"/>
+  
+  <!-- Güneş yansıması -->
+  <ellipse cx="260" cy="225" rx="40" ry="10" fill="#FFEB3B" opacity="0.4"/>
+  
+  <!-- Sazlıklar -->
+  <path d="M30,220 Q32,190 30,180" stroke="#40916C" stroke-width="3" fill="none"/>
+  <path d="M40,220 Q42,195 40,185" stroke="#40916C" stroke-width="3" fill="none"/>
+  <path d="M50,222 Q52,200 50,190" stroke="#52B788" stroke-width="3" fill="none"/>
+  
+  <path d="M355,220 Q357,195 355,185" stroke="#40916C" stroke-width="3" fill="none"/>
+  <path d="M365,222 Q367,200 365,190" stroke="#52B788" stroke-width="3" fill="none"/>
+  
+  <!-- Ağaçlar (solda) -->
+  <polygon points="20,190 40,140 60,190" fill="#2D6A4F"/>
+  <rect x="36" y="185" width="8" height="12" fill="#5D4A2E"/>
+  
+  <polygon points="60,190 80,150 100,190" fill="#40916C"/>
+  <rect x="76" y="185" width="8" height="12" fill="#5D4A2E"/>
+  
+  <!-- Ağaç (sağda) -->
+  <polygon points="340,190 360,140 380,190" fill="#2D6A4F"/>
+  <rect x="356" y="185" width="8" height="12" fill="#5D4A2E"/>
+  
+  <!-- Kuğular -->
+  <ellipse cx="150" cy="225" rx="10" ry="6" fill="white"/>
+  <path d="M155,222 Q160,215 158,210 L162,212 L162,222" fill="white"/>
+  
+  <ellipse cx="260" cy="240" rx="8" ry="5" fill="white"/>
+  <path d="M264,238 Q268,232 267,228 L270,230 L270,238" fill="white"/>
+  
+  <!-- Çiçekler -->
+  <circle cx="100" cy="205" r="4" fill="#E74C3C"/>
+  <circle cx="120" cy="210" r="3" fill="#FFD54F"/>
+  <circle cx="300" cy="200" r="4" fill="#E74C3C"/>
+  <circle cx="280" cy="208" r="3" fill="#FFD54F"/>
+</svg>

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block baslik %}{{ ogrenci.ad_soyad }} — Detay{% endblock %}
+
+{% block menu %}
+<a href="/ogretmen">← Sınıf Listesi</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="detay-sayfa">
+
+    <!-- Öğrenci Kartı -->
+    <div class="ogrenci-ust-kart">
+        <div class="ogr-buyuk-avatar">🧑‍🎓</div>
+        <div class="ogr-baslik-bilgi">
+            <h1>{{ ogrenci.ad_soyad }}</h1>
+            <p class="ogr-username">@{{ ogrenci.kullanici_adi }}</p>
+            <p class="ogr-rutbe-buyuk">{{ rutbe }}</p>
+        </div>
+    </div>
+
+    <!-- Hızlı İstatistikler -->
+    <div class="hizli-istatistik">
+        <div class="hist-kart">
+            <div class="hist-emoji">⭐</div>
+            <div class="hist-sayi">{{ toplam_yildiz }}</div>
+            <div class="hist-etiket">Toplam Yıldız</div>
+        </div>
+        <div class="hist-kart">
+            <div class="hist-emoji">🏅</div>
+            <div class="hist-sayi">{{ rozetler|length }}</div>
+            <div class="hist-etiket">Rozet</div>
+        </div>
+        <div class="hist-kart">
+            <div class="hist-emoji">🎮</div>
+            <div class="hist-sayi">{{ oynanan_oyun }}</div>
+            <div class="hist-etiket">Oynanan Oyun</div>
+        </div>
+    </div>
+
+    <!-- Bölüm Bölüm İlerleme -->
+    <h2 class="liste-baslik">📊 Bölüm İlerlemesi</h2>
+
+    <div class="bolum-ilerleme-grid">
+        {% for b in bolumler %}
+        <div class="ilerleme-kart {% if b.bitti %}ilerleme-bitti{% endif %}">
+            <div class="ilerleme-emoji">{{ b.emoji }}</div>
+            <div class="ilerleme-baslik">Bölüm {{ b.no }}</div>
+            <div class="ilerleme-ad">{{ b.ad }}</div>
+
+            <div class="ilerleme-cubuk">
+                <div class="ilerleme-dolgu" style="width: {{ b.yuzde }}%; background: {{ b.renk }};"></div>
+            </div>
+
+            <div class="ilerleme-detay">
+                <span>{{ b.tamamlanan }}/6 ara bölüm</span>
+                <span>⭐ {{ b.toplam_yildiz }}</span>
+            </div>
+
+            {% if b.bitti %}
+                <div class="ilerleme-rozet">🏅 {{ b.rozet }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Rozetler -->
+    <h2 class="liste-baslik">🏅 Kazanılan Rozetler</h2>
+
+    {% if rozetler %}
+    <div class="rozet-listesi-detay">
+        {% for r in rozetler %}
+        <div class="rozet-kart">
+            <div class="rozet-ikon">🏅</div>
+            <div class="rozet-ad">{{ r.ad }}</div>
+            <div class="rozet-tarih">{{ r.tarih }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bos-mesaj-panel">
+        <p>Henüz rozet kazanılmadı.</p>
+    </div>
+    {% endif %}
+
+    <div class="geri-buton-alani">
+        <a href="/ogretmen" class="geri-btn">← Sınıf Listesine Dön</a>
+    </div>
+
+</div>
+
+{% endblock %}

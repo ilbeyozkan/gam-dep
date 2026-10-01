@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block baslik %}Oyun Atama — {{ bolum.ad }}{% endblock %}
+
+{% block menu %}
+<a href="/admin">← Admin Panel</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="admin-sayfa">
+
+    <div class="panel-baslik">
+        <div class="panel-emoji">
+            <img src="{{ url_for('static', filename='img/' + bolum.resim) }}" alt="{{ bolum.ad }}"
+                 style="width: 90px; height: 90px; border-radius: 16px; object-fit: cover;">
+        </div>
+        <div class="panel-bilgi">
+            <h1>Bölüm {{ bolum.no }}: {{ bolum.ad }}</h1>
+            <p>Görev {{ ara }} — Oyun Atamaları</p>
+        </div>
+    </div>
+
+    {% if request.args.get('mesaj') %}
+        <div class="bildirim bildirim-basari">✅ {{ request.args.get('mesaj') }}</div>
+    {% endif %}
+
+    <!-- Yeni Oyun Ekleme Formu -->
+    <h2 class="liste-baslik">➕ Yeni Oyun Ekle</h2>
+
+    <div class="ekle-formu">
+        <form method="POST" action="/admin/oyun-ata">
+            <input type="hidden" name="ana" value="{{ ana }}">
+            <input type="hidden" name="ara" value="{{ ara }}">
+
+            <div class="form-alan">
+                <label>Oyun Seç</label>
+                <select name="oyun_no" required>
+                    <option value="">— Oyun seç —</option>
+                    {% for no, o in oyunlar.items() %}
+                    <option value="{{ no }}">{{ o.emoji }} {{ o.ad }} (No: {{ no }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="ekle-btn">+ Bu Göreve Ekle</button>
+        </form>
+    </div>
+
+    <!-- Mevcut Atamalar -->
+    <h2 class="liste-baslik">📋 Bu Görevdeki Oyunlar ({{ atamalar|length }})</h2>
+
+    {% if atamalar %}
+    <div class="atama-liste">
+        {% for a in atamalar %}
+        <div class="atama-kart">
+            <div class="atama-sira">{{ a.sira }}</div>
+
+            <div class="atama-oyun-bilgi">
+                <div class="atama-oyun-emoji">{{ a.oyun_emoji }}</div>
+                <div>
+                    <div class="atama-oyun-ad">{{ a.oyun_ad }}</div>
+                    <div class="atama-oyun-no">Oyun No: {{ a.oyun_no }}</div>
+                    {% if a.ozel_icerik_var %}
+                        <div class="atama-ozel-bilgi">⭐ Özel içerik atanmış</div>
+                    {% else %}
+                        <div class="atama-varsayilan-bilgi">📌 Varsayılan içerik</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="atama-islemler">
+                {% if not loop.first %}
+                <form method="POST" action="/admin/oyun-atama-tasi/{{ a.id }}/yukari" style="display:inline;">
+                    <button type="submit" class="kucuk-btn" title="Yukarı">⬆️</button>
+                </form>
+                {% endif %}
+
+                {% if not loop.last %}
+                <form method="POST" action="/admin/oyun-atama-tasi/{{ a.id }}/asagi" style="display:inline;">
+                    <button type="submit" class="kucuk-btn" title="Aşağı">⬇️</button>
+                </form>
+                {% endif %}
+
+                <a href="/admin/oyun-icerik/{{ a.id }}" class="kucuk-btn icerik-btn" title="İçeriği Düzenle">✏️</a>
+
+                <form method="POST" action="/admin/oyun-atama-sil/{{ a.id }}" style="display:inline;"
+                      onsubmit="return confirm('Bu oyunu bu görevden çıkarmak istediğine emin misin?');">
+                    <button type="submit" class="kucuk-btn sil-btn" title="Sil">🗑️</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bos-mesaj-panel">
+        <p>📭 Bu göreve henüz oyun atanmamış.</p>
+        <p>Yukarıdaki formdan oyun ekleyebilirsin.</p>
+    </div>
+    {% endif %}
+
+    <div class="geri-buton-alani">
+        <a href="/admin" class="geri-btn">← Admin Panele Dön</a>
+    </div>
+
+</div>
+
+{% endblock %}

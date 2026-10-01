@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block baslik %}{{ bolum.ad }} — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<a href="/harita">🗺️ Haritaya Dön</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="ara-sayfa">
+
+    <!-- Bölüm Başlığı -->
+    <div class="bolum-baslik-karti" style="--bolum-rengi: {{ bolum.renk }};">
+        <div class="bolum-baslik-resim">
+            <img src="{{ url_for('static', filename='img/' + bolum.resim) }}" alt="{{ bolum.ad }}">
+        </div>
+        <div class="bolum-baslik-bilgi">
+            <div class="bolum-baslik-no">Bölüm {{ bolum.no }}</div>
+            <h1>{{ bolum.ad }}</h1>
+            <p>Bu bölümde 6 ara görev var. Hepsini tamamla, rozeti kazan!</p>
+            <div class="bolum-baslik-rozet">🏅 Ödül: {{ bolum.rozet }}</div>
+        </div>
+    </div>
+
+    <!-- İlerleme Çubuğu -->
+    <div class="ilerleme-kutusu">
+        <div class="ilerleme-bilgi">
+            <span>İlerleme: {{ tamamlanan }}/6 ara bölüm</span>
+            <span>{{ yuzde }}%</span>
+        </div>
+        <div class="ilerleme-bar">
+            <div class="ilerleme-dolgu" style="width: {{ yuzde }}%;"></div>
+        </div>
+    </div>
+
+    <!-- 6 Ara Bölüm Grid -->
+    <div class="ara-grid">
+        {% for ara in ara_bolumler %}
+        <div class="ara-kart {% if not ara.acik %}kilitli{% endif %} {% if ara.bitti %}bitti{% endif %}"
+             style="--bolum-rengi: {{ bolum.renk }};">
+
+            {% if ara.bitti %}
+                <!-- TAMAMLANDI Şeridi (köşeden köşeye) -->
+                <div class="tamamlandi-serit tamamlandi-serit-buyuk">
+                    <span class="tamamlandi-yazi tamamlandi-yazi-buyuk">TAMAMLANDI ✓</span>
+                </div>
+                <div class="durum-isaret bitti-isaret">✅ Bitti</div>
+            {% elif not ara.acik %}
+                <div class="durum-isaret kilit-isaret">🔒 Kilitli</div>
+            {% else %}
+                <div class="durum-isaret acik-isaret">✨ Açık</div>
+            {% endif %}
+
+            <div class="ara-no">Ara Bölüm {{ ara.no }}</div>
+            <div class="ara-emoji">{{ ara.emoji }}</div>
+            <div class="ara-ad">{{ ara.ad }}</div>
+
+            <div class="ara-oyun-sayi">
+                🎮 {{ ara.oyun_sayisi }} oyun
+            </div>
+
+            {% if ara.acik %}
+                <a href="/bolum/{{ bolum.no }}/ara/{{ ara.no }}" class="bolum-btn">
+                    {% if ara.bitti %}Tekrar Oyna →{% else %}Başla →{% endif %}
+                </a>
+            {% else %}
+                <button class="bolum-btn pasif" disabled>Kilitli 🔒</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="geri-buton-alani">
+        <a href="/harita" class="geri-btn">← Haritaya Dön</a>
+    </div>
+
+</div>
+
+{% endblock %}

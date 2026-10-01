@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block baslik %}Harita — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="harita-sayfa">
+
+    <!-- Üst Bilgi Kartı -->
+    <div class="ogrenci-karti">
+        <div class="avatar-alani">
+            <div class="avatar-wrap">
+                <!-- Rozet Halkası -->
+                {% if rozetler %}
+                <div class="rozet-halka" style="--toplam: {{ rozetler|length }};">
+                    {% for r in rozetler %}
+                    <div class="halka-rozet" style="--i: {{ loop.index0 }};" title="{{ r.ad }}">
+                        <span class="halka-rozet-ikon">{{ r.ikon }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Ana Avatar -->
+                <div class="avatar" id="avatar-goster" onclick="avatarModalAc()">
+                    <span class="avatar-emoji">{{ avatar }}</span>
+
+                    {% if takili_ekipmanlar.sirt %}
+                    <div class="ekipman-katman ekipman-sirt" title="{{ takili_ekipmanlar.sirt.ad }}">
+                        {{ takili_ekipmanlar.sirt.emoji }}
+                    </div>
+                    {% endif %}
+
+                    {% if takili_ekipmanlar.sapka %}
+                    <div class="ekipman-katman ekipman-sapka" title="{{ takili_ekipmanlar.sapka.ad }}">
+                        {{ takili_ekipmanlar.sapka.emoji }}
+                    </div>
+                    {% endif %}
+
+                    {% if takili_ekipmanlar.gozluk %}
+                    <div class="ekipman-katman ekipman-gozluk" title="{{ takili_ekipmanlar.gozluk.ad }}">
+                        {{ takili_ekipmanlar.gozluk.emoji }}
+                    </div>
+                    {% endif %}
+
+                    {% if takili_ekipmanlar.boyun %}
+                    <div class="ekipman-katman ekipman-boyun" title="{{ takili_ekipmanlar.boyun.ad }}">
+                        {{ takili_ekipmanlar.boyun.emoji }}
+                    </div>
+                    {% endif %}
+
+                    {% if takili_ekipmanlar.el %}
+                    <div class="ekipman-katman ekipman-el" title="{{ takili_ekipmanlar.el.ad }}">
+                        {{ takili_ekipmanlar.el.emoji }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="ogrenci-bilgi">
+            <div class="bilgi-ust">
+                <h2>Merhaba, {{ ad_soyad }}! 👋</h2>
+                <div class="yildiz-kutusu yildiz-kutusu-buyuk">
+                    <span class="yildiz-ikon">⭐</span>
+                    <span class="yildiz-sayi">{{ yildiz_sayisi }}</span>
+                </div>
+            </div>
+            <p class="rutbe">Rütbe: <strong>{{ rutbe }}</strong></p>
+            <div class="rozet-listesi">
+                {% for r in rozetler %}
+                    <span class="rozet" title="{{ r.ad }}">{{ r.ikon }} {{ r.ad }}</span>
+                {% else %}
+                    <span class="rozet-bos">Henüz rozet kazanmadın</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="harita-aksiyon-btnlar">
+            <a href="/ekipman-magaza" class="siralama-link-btn magaza-link-btn">
+                🎁 Ekipman Odası
+            </a>
+            <a href="/haftalik-ozet" class="siralama-link-btn haftalik-link-btn">
+                📊 Haftalık Özet
+            </a>
+            <a href="/siralama" class="siralama-link-btn">
+                🏆 Sıralamayı Gör
+            </a>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- 🔥 SERİ + 🎯 GÜNLÜK HEDEF — YAN YANA -->
+    <!-- ============================================ -->
+    <div class="harita-ust-panel">
+
+        <!-- Sol: Seri Kartı -->
+        {% if seri_gun > 0 or seri_bugun_oynadi %}
+        <div class="seri-karti seri-seviye-{{ 'efsane' if seri_gun >= 30 else 'muhtesem' if seri_gun >= 14 else 'harika' if seri_gun >= 7 else 'iyi' if seri_gun >= 3 else 'baslangic' }}">
+
+            <div class="seri-sol">
+                <div class="seri-alev">🔥</div>
+                <div class="seri-bilgi">
+                    <div class="seri-baslik">
+                        {% if seri_gun == 1 %}
+                            1 Günlük Seri
+                        {% elif seri_gun < 3 %}
+                            {{ seri_gun }} Günlük Seri
+                        {% elif seri_gun < 7 %}
+                            {{ seri_gun }} Günlük Seri!
+                        {% elif seri_gun < 14 %}
+                            {{ seri_gun }} Günlük Seri
+                        {% elif seri_gun < 30 %}
+                            {{ seri_gun }} Günlük Seri
+                        {% else %}
+                            {{ seri_gun }} Günlük Seri
+                        {% endif %}
+                    </div>
+                    <div class="seri-aciklama">
+                        {% if not seri_bugun_oynadi %}
+                            ⚠️ Bugün henüz oynamadın!
+                        {% elif seri_gun == 1 %}
+                            Yarın da gel! 💪
+                        {% elif seri_gun < 7 %}
+                            {{ 7 - seri_gun }} gün kaldı!
+                        {% elif seri_gun < 14 %}
+                            {{ 14 - seri_gun }} gün kaldı!
+                        {% elif seri_gun < 30 %}
+                            {{ 30 - seri_gun }} gün kaldı!
+                        {% else %}
+                            Efsanesin! 🏆
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="seri-sag">
+                <div class="seri-sayi">{{ seri_gun }}</div>
+                <div class="seri-etiket">GÜN</div>
+            </div>
+
+        </div>
+        {% endif %}
+
+        <!-- Sağ: Günlük Hedef Kartı -->
+        <div class="gunluk-hedef-karti {% if bugun_oynanan >= gunluk_hedef %}hedef-tamamlandi{% endif %}">
+            <div class="hedef-sol">
+                <div class="hedef-emoji">
+                    {% if bugun_oynanan >= gunluk_hedef %}🎉{% else %}🎯{% endif %}
+                </div>
+                <div class="hedef-bilgi">
+                    <div class="hedef-baslik">
+                        {% if bugun_oynanan >= gunluk_hedef %}
+                            Hedefini Tamamladın!
+                        {% else %}
+                            Bugünkü Hedefin
+                        {% endif %}
+                    </div>
+                    <div class="hedef-aciklama">
+                        {% if bugun_oynanan >= gunluk_hedef %}
+                            Harikasın! Yarın yeni hedef! 💪
+                        {% else %}
+                            {{ gunluk_hedef - bugun_oynanan }} oyun daha!
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="hedef-sag">
+                <div class="hedef-sayi">
+                    <span class="hedef-bugun">{{ bugun_oynanan }}</span>
+                    <span class="hedef-toplam">/ {{ gunluk_hedef }}</span>
+                </div>
+                <div class="hedef-ilerleme">
+                    {% set yuzde = (bugun_oynanan / gunluk_hedef * 100) if bugun_oynanan < gunluk_hedef else 100 %}
+                    <div class="hedef-dolgu" style="width: {{ yuzde }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Harita Başlığı -->
+    <h1 class="harita-baslik">🗺️ Okuma Yolculuğu Haritası</h1>
+    <p class="harita-alt-baslik">Her bölgeyi tamamla, yeni diyarlara ulaş!</p>
+
+    <!-- Ana Bölümler -->
+    <div class="harita-grid">
+        {% for bolum in bolumler %}
+        <div class="bolum-kart {% if not bolum.acik %}kilitli{% endif %} {% if bolum.bitti %}bitti{% endif %}"
+             style="--bolum-rengi: {{ bolum.renk }};">
+
+            {% if bolum.bitti %}
+                <!-- TAMAMLANDI Şeridi (köşeden köşeye) -->
+                <div class="tamamlandi-serit tamamlandi-serit-buyuk">
+                    <span class="tamamlandi-yazi tamamlandi-yazi-buyuk">TAMAMLANDI ✓</span>
+                </div>
+                <div class="durum-isaret bitti-isaret">✅ Bitti</div>
+            {% elif not bolum.acik %}
+                <div class="durum-isaret kilit-isaret">🔒 Kilitli</div>
+            {% else %}
+                <div class="durum-isaret acik-isaret">✨ Açık</div>
+            {% endif %}
+
+            <div class="bolum-resim">
+                <img src="{{ url_for('static', filename='img/' + bolum.resim) }}" alt="{{ bolum.ad }}">
+            </div>
+            <div class="bolum-no">Bölüm {{ bolum.no }}</div>
+            <div class="bolum-ad">{{ bolum.ad }}</div>
+            <div class="bolum-rozet">🏅 {{ bolum.rozet }}</div>
+
+            {% if bolum.acik %}
+                <a href="/bolum/{{ bolum.no }}" class="bolum-btn">Gir →</a>
+            {% else %}
+                <button class="bolum-btn pasif" disabled>Kilitli 🔒</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- ============================================ -->
+<!-- AVATAR SEÇİM MODALI -->
+<!-- ============================================ -->
+<div class="avatar-modal" id="avatar-modal" style="display: none;">
+    <div class="avatar-modal-icerik">
+        <div class="avatar-modal-baslik">
+            <h2>🎨 Avatarını Seç</h2>
+            <button class="avatar-modal-kapat" onclick="avatarModalKapat()">✕</button>
+        </div>
+
+        <p class="avatar-modal-alt">Sana en çok benzeyeni seç!</p>
+
+        <div class="avatar-secenek-grid">
+            {% for av in avatar_secenekleri %}
+            <button class="avatar-secenek {% if av == avatar %}avatar-secenek-aktif{% endif %}"
+                    data-avatar="{{ av }}"
+                    onclick="avatarSec(this)">
+                {{ av }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <div class="avatar-modal-butonlar">
+            <button class="avatar-kaydet-btn" onclick="avatarKaydet()">💾 Kaydet</button>
+            <button class="avatar-iptal-btn" onclick="avatarModalKapat()">İptal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let seciliAvatar = "{{ avatar }}";
+
+    function avatarModalAc() {
+        document.getElementById("avatar-modal").style.display = "flex";
+    }
+
+    function avatarModalKapat() {
+        document.getElementById("avatar-modal").style.display = "none";
+    }
+
+    function avatarSec(btn) {
+        const hepsi = document.querySelectorAll(".avatar-secenek");
+        for (let i = 0; i < hepsi.length; i++) {
+            hepsi[i].classList.remove("avatar-secenek-aktif");
+        }
+        btn.classList.add("avatar-secenek-aktif");
+        seciliAvatar = btn.dataset.avatar;
+    }
+
+    function avatarKaydet() {
+        fetch("/avatar-guncelle", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ avatar: seciliAvatar })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(cevap) {
+            if (cevap.hata) {
+                alert("⚠️ " + cevap.hata);
+                return;
+            }
+            document.querySelector(".avatar-emoji").textContent = cevap.avatar;
+            const modal = document.getElementById("avatar-modal");
+            modal.style.display = "none";
+            const av = document.getElementById("avatar-goster");
+            av.classList.add("avatar-sevc");
+            setTimeout(function() {
+                av.classList.remove("avatar-sevinc");
+            }, 1500);
+        })
+        .catch(function(h) {
+            alert("Hata: " + h);
+        });
+    }
+
+    document.getElementById("avatar-modal").addEventListener("click", function(e) {
+        if (e.target === this) {
+            avatarModalKapat();
+        }
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            avatarModalKapat();
+        }
+    });
+</script>
+
+{% endblock %}

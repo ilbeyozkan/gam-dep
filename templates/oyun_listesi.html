@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block baslik %}{{ bolum.ad }} — Ara {{ ara_no }}{% endblock %}
+
+{% block menu %}
+<a href="/bolum/{{ bolum.no }}">← {{ bolum.ad }}</a>
+<a href="/harita">🗺️ Harita</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="oyun-listesi-sayfa">
+
+    <!-- Başlık -->
+    <div class="bolum-baslik-karti" style="--bolum-rengi: {{ bolum.renk }};">
+        <div class="bolum-baslik-emoji">{{ bolum.emoji }}</div>
+        <div class="bolum-baslik-bilgi">
+            <div class="bolum-baslik-no">{{ bolum.ad }} — Ara Bölüm {{ ara_no }}</div>
+            <h1>Ara Bölüm {{ ara_no }} Oyunları</h1>
+            <p>Aşağıdaki oyunları sırayla oyna. Her oyunu bitirdiğinde yıldız kazanırsın!</p>
+        </div>
+    </div>
+
+    <!-- Oyunlar -->
+    {% if oyunlar %}
+    <div class="oyun-grid">
+        {% for oyun in oyunlar %}
+        <div class="oyun-kart {% if oyun.bitti %}oyun-bitti{% endif %}">
+
+            {% if oyun.bitti %}
+                <!-- TAMAMLANDI Şeridi (köşeden köşeye) -->
+                <div class="tamamlandi-serit">
+                    <span class="tamamlandi-yazi">TAMAMLANDI ✓</span>
+                </div>
+                <div class="oyun-yildiz">⭐ {{ oyun.kazanilan_yildiz }}/3</div>
+            {% endif %}
+
+            <div class="oyun-emoji">{{ oyun.emoji }}</div>
+            <div class="oyun-no">Oyun {{ loop.index }}</div>
+            <div class="oyun-ad">{{ oyun.ad }}</div>
+            <div class="oyun-aciklama">{{ oyun.aciklama }}</div>
+
+            <a href="/oyun/{{ bolum.no }}/{{ ara_no }}/{{ oyun.no }}" class="oyun-btn {% if oyun.bitti %}tekrar{% endif %}">
+                {% if oyun.bitti %}🔄 Tekrar Oyna{% else %}🎮 Oyna{% endif %}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bos-mesaj">
+        <p>😕 Bu ara bölümde henüz oyun atanmamış.</p>
+        <p>Admin panelinden oyun atanması gerekiyor.</p>
+    </div>
+    {% endif %}
+
+    <div class="geri-buton-alani">
+        <a href="/bolum/{{ bolum.no }}" class="geri-btn">← Ara Bölümlere Dön</a>
+    </div>
+
+</div>
+
+{% endblock %}

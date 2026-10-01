@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block baslik %}Ekipman Odası — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<a href="/harita">🗺️ Haritaya Dön</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="magaza-sayfa">
+
+    <!-- Başlık -->
+    <div class="magaza-baslik-alani">
+        <div class="magaza-ikon">🎁</div>
+        <h1>Ekipman Odası</h1>
+        <p>Yıldızlarınla yeni eşyalar aç, avatarını süsle!</p>
+    </div>
+
+    <!-- Yıldız Cüzdanı -->
+    <div class="cuzdan-karti">
+        <div class="cuzdan-sol">
+            <div class="cuzdan-yildiz">⭐</div>
+            <div>
+                <div class="cuzdan-baslik">Harcayabileceğin Yıldız</div>
+                <div class="cuzdan-aciklama">
+                    Toplam: <strong>{{ toplam_yildiz }}</strong> ⭐ •
+                    Harcanan: <strong>{{ harcanan }}</strong> ⭐
+                </div>
+            </div>
+        </div>
+        <div class="cuzdan-sag">
+            <div class="cuzdan-sayi">{{ kullanilabilir }}</div>
+            <div class="cuzdan-etiket">⭐ HARCANABİLİR</div>
+        </div>
+    </div>
+
+    <!-- Bildirimler -->
+    {% if request.args.get('mesaj') %}
+        <div class="bildirim bildirim-basari">✅ {{ request.args.get('mesaj') }}</div>
+    {% endif %}
+    {% if request.args.get('hata') %}
+        <div class="bildirim bildirim-hata">⚠️ {{ request.args.get('hata') }}</div>
+    {% endif %}
+
+    <!-- Kategoriler -->
+    {% for kat in kategoriler %}
+    <div class="magaza-kategori">
+        <h2 class="magaza-kategori-baslik">{{ kat.ad }}</h2>
+
+        <div class="ekipman-grid">
+            {% for e in kat.esyalar %}
+            <div class="ekipman-kart {% if e.sahip %}ekipman-sahip{% endif %} {% if e.takili %}ekipman-takili{% endif %}">
+
+                {% if e.takili %}
+                    <div class="ekipman-durum durum-takili">✓ TAKILI</div>
+                {% elif e.sahip %}
+                    <div class="ekipman-durum durum-sahip">🎒 ÇANTADA</div>
+                {% endif %}
+
+                <div class="ekipman-emoji">{{ e.emoji }}</div>
+                <div class="ekipman-ad">{{ e.ad }}</div>
+
+                <div class="ekipman-fiyat">
+                    {% if e.sahip %}
+                        <span class="fiyat-sahip">✓ Sende</span>
+                    {% else %}
+                        <span class="fiyat-yildiz">{{ e.fiyat }} ⭐</span>
+                    {% endif %}
+                </div>
+
+                {% if not e.sahip %}
+                    <form method="POST" action="/ekipman-ac/{{ e.no }}">
+                        <button type="submit" class="ekipman-btn satin-al-btn {% if not e.alabilir %}btn-pasif{% endif %}"
+                                {% if not e.alabilir %}disabled title="{{ e.fiyat }} yıldız gerekiyor"{% endif %}>
+                            {% if e.alabilir %}🌟 Yıldızla Aç{% else %}🔒 {{ e.fiyat }} ⭐{% endif %}
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="/ekipman-tak/{{ e.no }}">
+                        <button type="submit" class="ekipman-btn tak-btn {% if e.takili %}btn-cikar{% endif %}">
+                            {% if e.takili %}📤 Çıkar{% else %}🎽 Tak{% endif %}
+                        </button>
+                    </form>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="geri-buton-alani">
+        <a href="/harita" class="geri-btn">← Haritaya Dön</a>
+    </div>
+
+</div>
+
+{% endblock %}

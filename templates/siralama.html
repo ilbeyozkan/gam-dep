@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block baslik %}Sınıf Sıralaması — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+{% if aktif_rol == 'ogrenci' %}
+    <a href="/harita">🗺️ Haritaya Dön</a>
+{% elif aktif_rol == 'ogretmen' %}
+    <a href="/ogretmen">← Sınıfım</a>
+{% elif aktif_rol == 'admin' %}
+    <a href="/admin">← Admin Panel</a>
+{% endif %}
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="siralama-sayfa">
+
+    <!-- Başlık -->
+    <div class="siralama-baslik-alani">
+        <div class="siralama-tac">🏆</div>
+        <h1>Sınıf Sıralaması</h1>
+        <p>En çok yıldız toplayan öğrenciler</p>
+    </div>
+
+    {% if kendi_sira %}
+    <div class="kendi-sira-kutusu">
+        <span class="kendi-sira-emoji">🎯</span>
+        <span class="kendi-sira-metin">
+            Sen şu an <strong>{{ kendi_sira }}.</strong> sıradasın!
+        </span>
+    </div>
+    {% endif %}
+
+    {% if ogrenciler %}
+    <div class="siralama-listesi">
+
+        {% for o in ogrenciler %}
+        <div class="siralama-kart {% if o.sira == 1 %}sira-birinci{% elif o.sira == 2 %}sira-ikinci{% elif o.sira == 3 %}sira-ucuncu{% endif %} {% if o.id == kullanici_id %}sira-ben{% endif %}">
+
+            <!-- Sıra Numarası / Madalya -->
+            <div class="siralama-sira">
+                {% if o.sira == 1 %}🥇
+                {% elif o.sira == 2 %}🥈
+                {% elif o.sira == 3 %}🥉
+                {% else %}{{ o.sira }}
+                {% endif %}
+            </div>
+
+            <!-- Avatar -->
+            <div class="siralama-avatar">{{ o.avatar if o.avatar else '🧑‍🎓' }}</div>
+
+            <!-- İsim -->
+            <div class="siralama-isim">
+                <div class="siralama-ad">{{ o.ad_soyad }}</div>
+                <div class="siralama-username">@{{ o.kullanici_adi }}</div>
+            </div>
+
+            <!-- İstatistikler -->
+            <div class="siralama-istatistik">
+                <div class="siralama-stat siralama-yildiz">
+                    <span class="stat-emoji">⭐</span>
+                    <span class="stat-sayi">{{ o.toplam_yildiz }}</span>
+                </div>
+                <div class="siralama-stat siralama-rozet">
+                    <span class="stat-emoji">🏅</span>
+                    <span class="stat-sayi">{{ o.rozet_sayisi }}</span>
+                </div>
+            </div>
+
+            {% if o.id == kullanici_id %}
+            <div class="ben-etiket">SEN</div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+    </div>
+    {% else %}
+    <div class="bos-mesaj-panel">
+        <p>📭 Henüz öğrenci yok.</p>
+    </div>
+    {% endif %}
+
+    <div class="geri-buton-alani">
+        {% if aktif_rol == 'ogrenci' %}
+            <a href="/harita" class="geri-btn">← Haritaya Dön</a>
+        {% elif aktif_rol == 'ogretmen' %}
+            <a href="/ogretmen" class="geri-btn">← Sınıf Listesine Dön</a>
+        {% elif aktif_rol == 'admin' %}
+            <a href="/admin" class="geri-btn">← Admin Panele Dön</a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

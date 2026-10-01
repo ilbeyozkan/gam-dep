@@ -1,0 +1,57 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gokyuzu3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF9A8B"/>
+      <stop offset="50%" stop-color="#FFB88C"/>
+      <stop offset="100%" stop-color="#FFE0B2"/>
+    </linearGradient>
+    <linearGradient id="dag1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="30%" stop-color="#A8A8A8"/>
+      <stop offset="100%" stop-color="#4A4A4A"/>
+    </linearGradient>
+    <linearGradient id="dag2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E0E0E0"/>
+      <stop offset="100%" stop-color="#5D5D5D"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Gökyüzü (gün batımı) -->
+  <rect width="400" height="300" fill="url(#gokyuzu3)"/>
+  
+  <!-- Güneş -->
+  <circle cx="100" cy="100" r="35" fill="#FFEB3B"/>
+  <circle cx="100" cy="100" r="50" fill="#FFEB3B" opacity="0.3"/>
+  
+  <!-- Uzak dağlar -->
+  <polygon points="0,220 70,130 140,220" fill="url(#dag2)" opacity="0.7"/>
+  <polygon points="260,220 340,120 400,220" fill="url(#dag2)" opacity="0.7"/>
+  
+  <!-- Ana dağ -->
+  <polygon points="60,260 200,80 340,260" fill="url(#dag1)"/>
+  
+  <!-- Karlı zirve detayları -->
+  <path d="M170,120 L200,80 L230,120 L210,115 L195,125 L180,115 Z" fill="#FFFFFF"/>
+  
+  <!-- Dağ gölgeleri -->
+  <polygon points="200,80 340,260 270,260" fill="#3A3A3A" opacity="0.3"/>
+  
+  <!-- Yamaç bitkileri -->
+  <polygon points="120,240 130,225 140,240" fill="#2D6A4F"/>
+  <polygon points="280,235 290,220 300,235" fill="#2D6A4F"/>
+  <polygon points="250,255 258,242 266,255" fill="#40916C"/>
+  
+  <!-- Alt çimen -->
+  <rect y="260" width="400" height="40" fill="#7CB342"/>
+  <path d="M0,260 Q100,250 200,265 T400,260 L400,300 L0,300 Z" fill="#558B2F"/>
+  
+  <!-- Ağaçlar -->
+  <polygon points="30,270 50,230 70,270" fill="#2D6A4F"/>
+  <rect x="46" y="265" width="8" height="15" fill="#5D4A2E"/>
+  
+  <polygon points="340,270 360,230 380,270" fill="#2D6A4F"/>
+  <rect x="356" y="265" width="8" height="15" fill="#5D4A2E"/>
+  
+  <!-- Yol -->
+  <path d="M180,300 Q190,275 200,260 Q210,275 220,300 Z" fill="#D4A574" opacity="0.6"/>
+</svg>

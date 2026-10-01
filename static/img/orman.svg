@@ -1,0 +1,64 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gokyuzu2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="100%" stop-color="#E0F6FF"/>
+    </linearGradient>
+    <linearGradient id="agac1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#52B788"/>
+      <stop offset="100%" stop-color="#2D6A4F"/>
+    </linearGradient>
+    <linearGradient id="agac2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#74C69D"/>
+      <stop offset="100%" stop-color="#40916C"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Gökyüzü -->
+  <rect width="400" height="300" fill="url(#gokyuzu2)"/>
+  
+  <!-- Güneş -->
+  <circle cx="70" cy="60" r="25" fill="#FFD54F"/>
+  <circle cx="70" cy="60" r="35" fill="#FFD54F" opacity="0.3"/>
+  
+  <!-- Kuş -->
+  <path d="M280,70 Q290,60 300,70" stroke="#333" stroke-width="2" fill="none"/>
+  <path d="M300,70 Q310,60 320,70" stroke="#333" stroke-width="2" fill="none"/>
+  <path d="M310,90 Q320,80 330,90" stroke="#333" stroke-width="2" fill="none"/>
+  <path d="M330,90 Q340,80 350,90" stroke="#333" stroke-width="2" fill="none"/>
+  
+  <!-- Zemin -->
+  <rect y="230" width="400" height="70" fill="#7CB342"/>
+  <path d="M0,230 Q100,220 200,235 T400,230 L400,300 L0,300 Z" fill="#558B2F"/>
+  
+  <!-- Arka sıra ağaçlar -->
+  <polygon points="50,230 75,160 100,230" fill="url(#agac2)"/>
+  <rect x="70" y="220" width="10" height="15" fill="#5D4A2E"/>
+  
+  <polygon points="300,230 325,150 350,230" fill="url(#agac2)"/>
+  <rect x="320" y="220" width="10" height="15" fill="#5D4A2E"/>
+  
+  <polygon points="170,230 195,170 220,230" fill="url(#agac2)"/>
+  <rect x="190" y="220" width="10" height="15" fill="#5D4A2E"/>
+  
+  <!-- Ön sıra büyük ağaçlar -->
+  <polygon points="100,240 140,130 180,240" fill="url(#agac1)"/>
+  <polygon points="110,200 140,140 170,200" fill="url(#agac1)"/>
+  <rect x="132" y="235" width="16" height="25" fill="#5D4A2E"/>
+  
+  <polygon points="240,240 280,120 320,240" fill="url(#agac1)"/>
+  <polygon points="250,200 280,130 310,200" fill="url(#agac1)"/>
+  <rect x="272" y="235" width="16" height="25" fill="#5D4A2E"/>
+  
+  <!-- Çalılar -->
+  <ellipse cx="60" cy="245" rx="20" ry="12" fill="#40916C"/>
+  <ellipse cx="380" cy="250" rx="25" ry="14" fill="#40916C"/>
+  <ellipse cx="200" cy="255" rx="18" ry="10" fill="#52B788"/>
+  
+  <!-- Mantarlar -->
+  <ellipse cx="75" cy="255" rx="6" ry="4" fill="#E74C3C"/>
+  <rect x="73" y="255" width="4" height="8" fill="#F5F5F5"/>
+  
+  <ellipse cx="335" cy="260" rx="5" ry="3" fill="#E74C3C"/>
+  <rect x="333" y="260" width="4" height="7" fill="#F5F5F5"/>
+</svg>

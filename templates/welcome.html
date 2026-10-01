@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block baslik %}Okuma Oyunu — Okuma Güçlüğü Destek Sistemi{% endblock %}
+
+{% block menu %}
+<!-- Karşılama sayfasında menü sade -->
+{% endblock %}
+
+{% block icerik %}
+
+<div class="welcome-sayfa">
+
+    <!-- Hero Bölümü -->
+    <div class="welcome-hero">
+        <div class="hero-logo">🎮</div>
+        <h1 class="hero-baslik">Okuma Oyunu</h1>
+        <p class="hero-alt-baslik">
+            Okuma güçlüğü çeken öğrenciler için<br>
+            <strong>dijital okuma yolculuğu</strong>
+        </p>
+        <a href="/giris-sayfasi" class="hero-buton">
+            🚀 Hemen Başla
+        </a>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="welcome-istatistik">
+        <div class="welcome-stat">
+            <div class="welcome-stat-emoji">🎮</div>
+            <div class="welcome-stat-sayi">{{ toplam_oyun_tipi }}</div>
+            <div class="welcome-stat-etiket">Mini Oyun</div>
+        </div>
+        <div class="welcome-stat">
+            <div class="welcome-stat-emoji">🗺️</div>
+            <div class="welcome-stat-sayi">{{ toplam_bolum }}</div>
+            <div class="welcome-stat-etiket">Ana Bölüm</div>
+        </div>
+        <div class="welcome-stat">
+            <div class="welcome-stat-emoji">📚</div>
+            <div class="welcome-stat-sayi">{{ toplam_seviye }}</div>
+            <div class="welcome-stat-etiket">Seviye</div>
+        </div>
+        <div class="welcome-stat">
+            <div class="welcome-stat-emoji">⭐</div>
+            <div class="welcome-stat-sayi">{{ toplam_oyun }}</div>
+            <div class="welcome-stat-etiket">Oynanan Oyun</div>
+        </div>
+    </div>
+
+    <!-- Özellikler -->
+    <h2 class="welcome-baslik">✨ Neler Var?</h2>
+
+    <div class="welcome-ozellikler">
+        <div class="ozellik-kart">
+            <div class="ozellik-kart-emoji">🔊</div>
+            <h3>Sesli Okuma</h3>
+            <p>Sorular ve cümleler otomatik sesli okunur. Okumakta zorlananlar rahatça dinler.</p>
+        </div>
+
+        <div class="ozellik-kart">
+            <div class="ozellik-kart-emoji">🎤</div>
+            <h3>Sesli Cevap</h3>
+            <p>Klavye yerine mikrofonla cevap verilebilir. Doğal konuşma ile öğrenme.</p>
+        </div>
+
+        <div class="ozellik-kart">
+            <div class="ozellik-kart-emoji">🏅</div>
+            <h3>Rozet & Rütbe</h3>
+            <p>Her bölüm sonunda rozet, belirli aşamalarda rütbe kazanılır. Motivasyon artar.</p>
+        </div>
+
+        <div class="ozellik-kart">
+            <div class="ozellik-kart-emoji">📊</div>
+            <h3>İlerleme Takibi</h3>
+            <p>Öğrenciler kendi ilerlemesini, öğretmenler tüm sınıfı takip eder.</p>
+        </div>
+
+        <div class="ozellik-kart">
+            <div class="ozellik-kart-emoji">🔒</div>
+            <h3>Kilit Sistemi</h3>
+            <p>Her seviye sırayla açılır. Öğrenci adım adım ilerler.</p>
+        </div>
+
+        <div class="ozellik-kart">
+            <div class="ozellik-kart-emoji">📱</div>
+            <h3>Her Cihazda</h3>
+            <p>Bilgisayar, tablet ve telefonda uyumlu çalışır.</p>
+        </div>
+    </div>
+
+    <!-- Rol Bilgileri -->
+    <h2 class="welcome-baslik">👥 Kimler Kullanır?</h2>
+
+    <div class="welcome-roller">
+        <div class="rol-kart rol-admin">
+            <div class="rol-emoji">👑</div>
+            <h3>Admin</h3>
+            <p>Kullanıcı ekler, sistemi yönetir, oyunları düzenler.</p>
+        </div>
+        <div class="rol-kart rol-ogretmen">
+            <div class="rol-emoji">👨‍🏫</div>
+            <h3>Öğretmen</h3>
+            <p>Öğrencilerin ilerlemesini takip eder, raporları görür.</p>
+        </div>
+        <div class="rol-kart rol-ogrenci">
+            <div class="rol-emoji">🧑‍🎓</div>
+            <h3>Öğrenci</h3>
+            <p>Oyunları oynar, yıldız toplar, rozet kazanır.</p>
+        </div>
+    </div>
+
+    <!-- Alt CTA -->
+    <div class="welcome-cta">
+        <h2>Hazır mısın? 🚀</h2>
+        <p>Okuma yolculuğuna hemen başla!</p>
+        <a href="/giris-sayfasi" class="hero-buton">🎮 Giriş Yap</a>
+    </div>
+
+</div>
+
+{% endblock %}

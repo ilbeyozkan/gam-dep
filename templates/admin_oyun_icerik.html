@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block baslik %}İçerik Düzenle — {{ oyun.ad }}{% endblock %}
+
+{% block menu %}
+<a href="/admin/oyun-atama/{{ atama.ana_bolum }}/{{ atama.ara_bolum }}">← Geri</a>
+<a href="/admin">Admin Panel</a>
+<a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
+{% endblock %}
+
+{% block icerik %}
+
+<div class="admin-sayfa">
+
+    <div class="panel-baslik">
+        <div class="panel-emoji">
+            <img src="{{ url_for('static', filename='img/' + bolum.resim) }}" alt="{{ bolum.ad }}"
+                 style="width: 90px; height: 90px; border-radius: 16px; object-fit: cover;">
+        </div>
+        <div class="panel-bilgi">
+            <h1>✏️ {{ oyun.emoji }} {{ oyun.ad }} — İçerik</h1>
+            <p>{{ bolum.ad }} → Görev {{ atama.ara_bolum }} → Sıra {{ atama.sira }}</p>
+        </div>
+    </div>
+
+    {% if request.args.get('mesaj') %}
+        <div class="bildirim bildirim-basari">✅ {{ request.args.get('mesaj') }}</div>
+    {% endif %}
+    {% if request.args.get('hata') %}
+        <div class="bildirim bildirim-hata">⚠️ {{ request.args.get('hata') }}</div>
+    {% endif %}
+
+    <!-- Bilgi Kutusu -->
+    <div class="icerik-bilgi-kutusu">
+        <div class="icerik-bilgi-baslik">📘 Nasıl Çalışır?</div>
+        <ul>
+            <li><strong>Boş bırakırsan</strong> → oyun <em>varsayılan</em> soruları kullanır.</li>
+            <li><strong>JSON girersen</strong> → sadece senin yazdığın sorular gösterilir.</li>
+            <li>Her oyunun soru yapısı farklıdır. Aşağıdaki <strong>örnek şablonu</strong> kullan.</li>
+            <li>Kaydettikten sonra oyunu <strong>öğrenci ile test et</strong>.</li>
+        </ul>
+    </div>
+
+    <!-- Örnek Şablon -->
+    <h2 class="liste-baslik">📋 Örnek Şablon (Bu Oyun İçin)</h2>
+
+    <div class="ornek-json-kutusu">
+        <div class="ornek-baslik">
+            <span>Bu oyuna özel JSON yapısı:</span>
+            <button type="button" class="kopyala-btn" onclick="kopyalaOrnek()">📋 Kopyala</button>
+        </div>
+        <pre id="ornek-json">{{ ornek_json }}</pre>
+    </div>
+
+    <!-- İçerik Düzenleme Formu -->
+    <h2 class="liste-baslik">✏️ İçeriği Düzenle</h2>
+
+    <form method="POST" action="/admin/oyun-icerik-kaydet/{{ atama.id }}" class="icerik-formu">
+
+        <div class="form-alan">
+            <label>Özel Sorular (JSON)</label>
+            <textarea name="ozel_veri" id="ozel-veri-input" rows="15"
+                      placeholder="Boş bırakırsan varsayılan sorular kullanılır..."
+                      spellcheck="false">{{ atama.ozel_veri if atama.ozel_veri else '' }}</textarea>
+        </div>
+
+        <div class="icerik-butonlar">
+            <button type="submit" class="ekle-btn">💾 Kaydet</button>
+            <button type="button" class="temizle-btn" onclick="temizleForm()">🗑️ Temizle (Varsayılana Dön)</button>
+            <button type="button" class="format-btn" onclick="formatJSON()">✨ JSON'u Düzenle</button>
+        </div>
+
+    </form>
+
+    <!-- Şu anki durum -->
+    <div class="durum-kutusu">
+        <strong>Şu anki durum:</strong>
+        {% if atama.ozel_veri %}
+            <span class="durum-ozel">⭐ Özel içerik aktif</span>
+            <p class="durum-aciklama">Bu oyun öğrenciye senin yazdığın sorularla gösterilecek.</p>
+        {% else %}
+            <span class="durum-varsayilan">📌 Varsayılan içerik</span>
+            <p class="durum-aciklama">Bu oyun varsayılan sorularla gösteriliyor. Yukarıdan özel içerik ekleyebilirsin.</p>
+        {% endif %}
+    </div>
+
+    <div class="geri-buton-alani">
+        <a href="/admin/oyun-atama/{{ atama.ana_bolum }}/{{ atama.ara_bolum }}" class="geri-btn">← Atama Sayfasına Dön</a>
+    </div>
+
+</div>
+
+<script>
+function kopyalaOrnek() {
+    const icerik = document.getElementById("ornek-json").textContent;
+    navigator.clipboard.writeText(icerik).then(function() {
+        alert("✅ Şablon kopyalandı! Şimdi metin alanına yapıştır.");
+    });
+}
+
+function temizleForm() {
+    if (confirm("Özel içeriği silmek istediğine emin misin? Varsayılan sorular kullanılacak.")) {
+        document.getElementById("ozel-veri-input").value = "";
+        alert("Metin alanı temizlendi. Şimdi '💾 Kaydet' butonuna bas.");
+    }
+}
+
+function formatJSON() {
+    const alan = document.getElementById("ozel-veri-input");
+    if (!alan.value.trim()) {
+        alert("Önce JSON yapıştır!");
+        return;
+    }
+    try {
+        const parsed = JSON.parse(alan.value);
+        alan.value = JSON.stringify(parsed, null, 2);
+        alert("✅ JSON düzenlendi!");
+    } catch (e) {
+        alert("❌ Geçersiz JSON: " + e.message);
+    }
+}
+</script>
+
+{% endblock %}

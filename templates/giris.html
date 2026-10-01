@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block baslik %}Giriş — Okuma Oyunu{% endblock %}
+
+{% block menu %}
+<!-- Giriş sayfasında menü yok -->
+{% endblock %}
+
+{% block icerik %}
+
+<div class="giris-sayfa giris-sayfa-tek">
+
+    <!-- Sol: Logo ve Slogan -->
+    <div class="giris-sol">
+        <div class="giris-logo">🎮</div>
+        <h1 class="giris-marka">Okuma Oyunu</h1>
+        <p class="giris-slogan">Okuma güçlüğü çeken öğrenciler için<br>eğlenceli bir öğrenme yolculuğu 🚀</p>
+
+        <div class="giris-ozellikler">
+            <div class="ozellik-satir">✨ <span>17 mini oyun</span></div>
+            <div class="ozellik-satir">🔊 <span>Sesli okuma & cevap</span></div>
+            <div class="ozellik-satir">🏅 <span>Rozet ve rütbeler</span></div>
+            <div class="ozellik-satir">📊 <span>İlerleme takibi</span></div>
+        </div>
+    </div>
+
+    <!-- Sağ: Giriş Formu -->
+    <div class="giris-sag">
+
+        <div class="giris-kutusu giris-kutusu-buyuk">
+            <h2>🔐 Giriş Yap</h2>
+            <p class="giris-alt-yazi">Hesabınla devam et</p>
+
+            <form method="POST" action="/giris">
+                <label>Kullanıcı Adı</label>
+                <input type="text" name="kullanici_adi" required placeholder="kullanici_adin" autocomplete="username">
+
+                <label>Şifre</label>
+                <input type="password" name="sifre" required placeholder="••••••" autocomplete="current-password">
+
+                <button type="submit" class="giris-buton">Giriş Yap 🚀</button>
+            </form>
+
+            {% if hata %}
+                <p class="hata-mesaji">⚠️ {{ hata }}</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
