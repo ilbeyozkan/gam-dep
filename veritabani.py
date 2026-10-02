@@ -32,14 +32,13 @@ def tablolari_olustur():
         )
     """)
 
-    # İlerleme tablosu (hangi öğrenci hangi bölümü bitirdi)
+    # İlerleme tablosu (hangi öğrenci hangi oyunu bitirdi)
     imlec.execute("""
         CREATE TABLE IF NOT EXISTS ilerleme (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ogrenci_id INTEGER NOT NULL,
-            ana_bolum INTEGER NOT NULL,     -- 1-8
-            ara_bolum INTEGER NOT NULL,     -- 1-6
-            oyun_no INTEGER NOT NULL,       -- 1-17
+            ana_bolum INTEGER NOT NULL,
+            oyun_no INTEGER NOT NULL,
             yildiz INTEGER DEFAULT 1,
             tamamlandi INTEGER DEFAULT 0,
             tarih TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -74,12 +73,11 @@ def tablolari_olustur():
         CREATE TABLE IF NOT EXISTS oyun_atamalari (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ana_bolum INTEGER NOT NULL,
-            ara_bolum INTEGER NOT NULL,
             sira INTEGER NOT NULL,
             oyun_no INTEGER NOT NULL,
             ozel_veri TEXT,
             olusturma_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(ana_bolum, ara_bolum, sira)
+            UNIQUE(ana_bolum, sira)
         )
     """)
 

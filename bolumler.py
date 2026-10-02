@@ -1,4 +1,6 @@
-# 8 Ana Bölüm ve özellikleri
+# ============================================
+# ANA BÖLÜMLER
+# ============================================
 ANA_BOLUMLER = [
     {"no": 1, "ad": "Başlangıç Limanı", "emoji": "⚓",  "renk": "#3498db", "rozet": "Başlangıç Kâşifi", "resim": "liman.svg"},
     {"no": 2, "ad": "Hece Ormanı",      "emoji": "🌲",  "renk": "#27ae60", "rozet": "Hece Ustası",       "resim": "orman.svg"},
@@ -6,9 +8,6 @@ ANA_BOLUMLER = [
     {"no": 4, "ad": "Anlam Gölü",       "emoji": "🏞️", "renk": "#9b59b6", "rozet": "Anlam Avcısı",     "resim": "gol.svg"},
     {"no": 5, "ad": "Zafer Kalesi",     "emoji": "🏰",  "renk": "#d4af37", "rozet": "Baş Kâşif",         "resim": "kale.svg"},
 ]
-
-# Her ana bölümde 6 ara bölüm var
-ARA_BOLUM_SAYISI = 6
 
 
 def ana_bolum_getir(no):
@@ -19,12 +18,16 @@ def ana_bolum_getir(no):
     return None
 
 
-# Rütbeler (ileride kullanacağız)
+# ============================================
+# RÜTBELER
+# ============================================
 RUTBELER = [
-    {"ad": "Çırak Kâşif",       "sembol": "🧭", "bolumler": [1, 2]},
-    {"ad": "Yol Arkadaşı Kâşif","sembol": "🗺️", "bolumler": [1, 2, 3, 4]},
-    {"ad": "Baş Kâşif",         "sembol": "👑", "bolumler": [1, 2, 3, 4, 5]},
+    {"ad": "Çırak Kâşif",        "sembol": "🧭", "bolumler": [1, 2]},
+    {"ad": "Yol Arkadaşı Kâşif", "sembol": "🗺️", "bolumler": [1, 2, 3, 4]},
+    {"ad": "Baş Kâşif",          "sembol": "👑", "bolumler": [1, 2, 3, 4, 5]},
 ]
+
+
 # ============================================
 # 17 DİJİTAL OYUN
 # ============================================
@@ -49,60 +52,6 @@ OYUNLAR = {
 }
 
 
-# ============================================
-# VARSAYILAN YERLEŞİM
-# Her ana bölüm (1-8) → 6 ara bölüm → oyun numaraları
-# Admin panelinden bu yerleşim değiştirilebilir
-# ============================================
-VARSAYILAN_YERLESIM = {
-    # Bölüm 1: Başlangıç Limanı - Sözcük temelli
-    1: {
-        1: [1],           # Sözcük Sayma
-        2: [2],           # Sözcük Atma
-        3: [3],           # Sözcük Birleştirme
-        4: [4],           # Sözcük Ayırma
-        5: [1, 2],        # Karışık
-        6: [3, 4],        # Karışık
-    },
-    # Bölüm 2: Hece Ormanı - Hece
-    2: {
-        1: [7],           # Hece Bölme
-        2: [8],           # Hece Silme
-        3: [7, 8],        # Karışık
-        4: [7],           # Hece Bölme
-        5: [8],           # Hece Silme
-        6: [7, 8],        # Karışık
-    },
-    # Bölüm 3: Kelime Dağı - Fonem (en yoğun bölüm)
-    3: {
-        1: [9],           # Fonem Ayırt Etme
-        2: [10, 11],      # Baştaki/Sondaki Fonem
-        3: [12, 13],      # Fonem Birleştirme/Bölme
-        4: [14],          # Fonem Silme
-        5: [15, 16],      # Fonem Ekleme/Değiştirme
-        6: [9, 10, 11, 12, 13, 14, 15, 16],  # Hepsi karışık
-    },
-    # Bölüm 4: Anlam Gölü - Kafiye
-    4: {
-        1: [5],           # Kafiye Ayırt Etme
-        2: [6],           # Kafiye Üretme
-        3: [5, 6],        # Karışık
-        4: [1, 2],        # Sözcük (tekrar)
-        5: [3, 4],        # Sözcük (tekrar)
-        6: [5, 6],        # Kafiye karışık
-    },
-    # Bölüm 5: Zafer Kalesi - Final
-    5: {
-        1: [17],          # Otomatik Okuma
-        2: [17],          # Otomatik Okuma (tekrar)
-        3: [12, 13],      # Fonem
-        4: [16],          # Fonem Değiştirme
-        5: [17],          # Otomatik Okuma
-        6: [1, 2, 3, 4, 5, 6],  # Büyük final: karışık
-    },
-}
-
-
 def oyun_getir(oyun_no):
     """Oyun numarasına göre oyun bilgisini döndür ('no' dahil)."""
     oyun = OYUNLAR.get(oyun_no)
@@ -111,22 +60,8 @@ def oyun_getir(oyun_no):
     return None
 
 
-def ara_bolum_oyunlari(ana_no, ara_no):
-    """Belirli bir ara bölümdeki oyunların listesini döndür."""
-    yerlesim = VARSAYILAN_YERLESIM.get(ana_no, {})
-    oyun_nolar = yerlesim.get(ara_no, [])
-    return [{"no": n, **OYUNLAR[n]} for n in oyun_nolar if n in OYUNLAR]
-def bos_yerlesim():
-    """Yeni sistemde başlangıçta tüm bölümler boş."""
-    yerlesim = {}
-    for ana in range(1, 6):  # 5 bölüm
-        yerlesim[ana] = {}
-        for ara in range(1, 7):  # 6 ara bölüm
-            yerlesim[ana][ara] = []
-    return yerlesim
 # ============================================
 # ROZET İKONLARI
-# Her rozet adına karşılık bir emoji
 # ============================================
 ROZET_IKONLARI = {
     "Başlangıç Kâşifi":  "⚓",
@@ -135,17 +70,11 @@ ROZET_IKONLARI = {
     "Anlam Avcısı":      "🏞️",
     "Baş Kâşif":         "🏆",
 }
+
+
 # ============================================
 # EKİPMAN KATALOĞU
 # ============================================
-# Kategoriler:
-#   sapka  → avatarın üstünde
-#   gozluk → göz hizasında
-#   el     → sağ elde
-#   boyun  → boyun hizasında
-#   sirt   → arkada (pelerin/kanat)
-# ============================================
-
 EKIPMANLAR = {
     # 🎩 ŞAPKALAR
     1:  {"ad": "Kasket",            "emoji": "🧢",  "kategori": "sapka", "fiyat": 10},

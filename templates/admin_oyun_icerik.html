@@ -3,7 +3,7 @@
 {% block baslik %}İçerik Düzenle — {{ oyun.ad }}{% endblock %}
 
 {% block menu %}
-<a href="/admin/oyun-atama/{{ atama.ana_bolum }}/{{ atama.ara_bolum }}">← Geri</a>
+<a href="/admin/oyun-atama/{{ atama.ana_bolum }}">← Geri</a>
 <a href="/admin">Admin Panel</a>
 <a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
 {% endblock %}
@@ -19,7 +19,7 @@
         </div>
         <div class="panel-bilgi">
             <h1>✏️ {{ oyun.emoji }} {{ oyun.ad }} — İçerik</h1>
-            <p>{{ bolum.ad }} → Görev {{ atama.ara_bolum }} → Sıra {{ atama.sira }}</p>
+            <p>{{ bolum.ad }} → Sıra {{ atama.sira }}</p>
         </div>
     </div>
 
@@ -85,7 +85,7 @@
     </div>
 
     <div class="geri-buton-alani">
-        <a href="/admin/oyun-atama/{{ atama.ana_bolum }}/{{ atama.ara_bolum }}" class="geri-btn">← Atama Sayfasına Dön</a>
+        <a href="/admin/oyun-atama/{{ atama.ana_bolum }}" class="geri-btn">← Bölüme Dön</a>
     </div>
 
 </div>

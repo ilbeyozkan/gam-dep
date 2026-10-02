@@ -3,6 +3,7 @@ import veritabani as db
 import bolumler as bl
 import oyun_verileri as ov
 import json
+from datetime import date, timedelta
 
 app = Flask(__name__)
 app.secret_key = "cok-gizli-bir-anahtar-degistir-bunu"
@@ -12,76 +13,65 @@ app.secret_key = "cok-gizli-bir-anahtar-degistir-bunu"
 # YARDIMCI FONKSİYONLAR
 # ============================================
 
-def atama_listesi_getir(ana_bolum, ara_bolum):
-    """Belirli bir ara bölümdeki oyun atamalarını getir."""
+def atama_listesi_getir(ana_bolum):
+    """Belirli bir bölümdeki oyun atamalarını getir."""
     conn = db.baglan()
     imlec = conn.cursor()
     imlec.execute("""
         SELECT id, sira, oyun_no, ozel_veri
         FROM oyun_atamalari
-        WHERE ana_bolum = ? AND ara_bolum = ?
+        WHERE ana_bolum = ?
         ORDER BY sira
-    """, (ana_bolum, ara_bolum))
+    """, (ana_bolum,))
     sonuclar = [dict(r) for r in imlec.fetchall()]
     conn.close()
     return sonuclar
 
 
-def tum_atamalar_getir():
-    """Tüm atamaları {ana: {ara: [atamalar]}} yapısında getir."""
-    conn = db.baglan()
-    imlec = conn.cursor()
-    imlec.execute("""
-        SELECT id, ana_bolum, ara_bolum, sira, oyun_no, ozel_veri
-        FROM oyun_atamalari
-        ORDER BY ana_bolum, ara_bolum, sira
-    """)
-    yerlesim = {}
-    for r in imlec.fetchall():
-        ana = r["ana_bolum"]
-        ara = r["ara_bolum"]
-        if ana not in yerlesim:
-            yerlesim[ana] = {}
-        if ara not in yerlesim[ana]:
-            yerlesim[ana][ara] = []
-        yerlesim[ana][ara].append(dict(r))
-    conn.close()
-    return yerlesim
-
-
-def atama_var_mi(ana_bolum, ara_bolum):
-    """Bu ara bölümde atama var mı?"""
+def atama_sayisi(ana_bolum):
+    """Bölümdeki toplam oyun ataması sayısı."""
     conn = db.baglan()
     imlec = conn.cursor()
     imlec.execute(
-        "SELECT COUNT(*) as s FROM oyun_atamalari WHERE ana_bolum = ? AND ara_bolum = ?",
-        (ana_bolum, ara_bolum)
+        "SELECT COUNT(*) as s FROM oyun_atamalari WHERE ana_bolum = ?",
+        (ana_bolum,)
     )
-    sonuc = imlec.fetchone()["s"]
+    s = imlec.fetchone()["s"]
     conn.close()
-    return sonuc > 0
+    return s
+
+
+def biten_bolumleri_getir(ogrenci_id):
+    """Öğrencinin bitirdiği bölümlerin no'larını döndür."""
+    conn = db.baglan()
+    imlec = conn.cursor()
+    biten = set()
+    for b in bl.ANA_BOLUMLER:
+        no = b["no"]
+        imlec.execute(
+            "SELECT DISTINCT oyun_no FROM oyun_atamalari WHERE ana_bolum = ?",
+            (no,)
+        )
+        atanmis = {r["oyun_no"] for r in imlec.fetchall()}
+        if not atanmis:
+            continue
+        imlec.execute("""
+            SELECT DISTINCT oyun_no FROM ilerleme
+            WHERE ogrenci_id = ? AND ana_bolum = ? AND tamamlandi = 1
+        """, (ogrenci_id, no))
+        tamamlanan = {r["oyun_no"] for r in imlec.fetchall()}
+        if atanmis.issubset(tamamlanan):
+            biten.add(no)
+    conn.close()
+    return biten
 
 
 def rozet_kontrol(ogrenci_id):
-    """
-    Öğrencinin bitirdiği ana bölümleri kontrol eder,
-    yeni rozet kazanılmışsa rozetler tablosuna ekler.
-    """
+    """Öğrenci yeni bir bölümü bitirdiyse rozet ver."""
+    biten_bolumler = biten_bolumleri_getir(ogrenci_id)
+
     conn = db.baglan()
     imlec = conn.cursor()
-
-    imlec.execute("""
-        SELECT ana_bolum, COUNT(DISTINCT ara_bolum) as tamamlanan
-        FROM ilerleme
-        WHERE ogrenci_id = ? AND tamamlandi = 1
-        GROUP BY ana_bolum
-    """, (ogrenci_id,))
-
-    biten_bolumler = set()
-    for s in imlec.fetchall():
-        if s["tamamlanan"] >= bl.ARA_BOLUM_SAYISI:
-            biten_bolumler.add(s["ana_bolum"])
-
     imlec.execute(
         "SELECT rozet_adi FROM rozetler WHERE ogrenci_id = ?",
         (ogrenci_id,)
@@ -103,21 +93,14 @@ def rozet_kontrol(ogrenci_id):
     conn.close()
     return yeni_rozetler
 
+
 def seri_guncelle(ogrenci_id):
-    """
-    Öğrencinin seri bilgisini günceller.
-    - Bugün ilk oyun ise ve dün de oynadıysa → seri +1
-    - Bugün ilk oyun ise ve dün oynamadıysa → seri = 1
-    - Bugün zaten oynadıysa → hiçbir şey yapma
-    """
-    from datetime import date, timedelta
-    bugun = date.today().isoformat()       # "2026-10-01"
+    """Öğrencinin seri bilgisini güncelle."""
+    bugun = date.today().isoformat()
     dun = (date.today() - timedelta(days=1)).isoformat()
 
     conn = db.baglan()
     imlec = conn.cursor()
-
-    # Mevcut durumu al
     imlec.execute(
         "SELECT seri_gun, son_oynama_tarihi FROM kullanicilar WHERE id = ?",
         (ogrenci_id,)
@@ -130,16 +113,11 @@ def seri_guncelle(ogrenci_id):
     mevcut_seri = satir["seri_gun"] or 0
     son_tarih = satir["son_oynama_tarihi"]
 
-    yeni_seri = mevcut_seri
-
     if son_tarih == bugun:
-        # Bugün zaten oynadı, değişiklik yok
-        pass
+        yeni_seri = mevcut_seri
     elif son_tarih == dun:
-        # Dün oynamıştı, seri +1
         yeni_seri = mevcut_seri + 1
     else:
-        # İlk kez veya seri bozulmuş, seri 1'den başlar
         yeni_seri = 1
 
     imlec.execute(
@@ -150,8 +128,8 @@ def seri_guncelle(ogrenci_id):
     conn.close()
     return yeni_seri
 
+
 def yonlendir_rol(rol):
-    """Kullanıcı rolüne göre doğru sayfaya yönlendir."""
     if rol == "admin":
         return redirect(url_for("admin_panel"))
     elif rol == "ogretmen":
@@ -206,7 +184,7 @@ def ana_sayfa():
         toplam_rozet=toplam_rozet,
         toplam_oyun_tipi=len(bl.OYUNLAR),
         toplam_bolum=len(bl.ANA_BOLUMLER),
-        toplam_seviye=len(bl.ANA_BOLUMLER) * bl.ARA_BOLUM_SAYISI,
+        toplam_seviye=sum(atama_sayisi(b["no"]) for b in bl.ANA_BOLUMLER),
     )
 
 
@@ -262,18 +240,7 @@ def harita():
     conn = db.baglan()
     imlec = conn.cursor()
 
-    imlec.execute("""
-        SELECT ana_bolum, COUNT(DISTINCT ara_bolum) as tamamlanan
-        FROM ilerleme
-        WHERE ogrenci_id = ? AND tamamlandi = 1
-        GROUP BY ana_bolum
-    """, (ogrenci_id,))
-    satirlar = imlec.fetchall()
-
-    biten_bolumler = set()
-    for s in satirlar:
-        if s["tamamlanan"] >= bl.ARA_BOLUM_SAYISI:
-            biten_bolumler.add(s["ana_bolum"])
+    biten_bolumler = biten_bolumleri_getir(ogrenci_id)
 
     imlec.execute(
         "SELECT COALESCE(SUM(yildiz), 0) as toplam FROM ilerleme WHERE ogrenci_id = ?",
@@ -285,7 +252,6 @@ def harita():
         "SELECT rozet_adi FROM rozetler WHERE ogrenci_id = ? ORDER BY tarih",
         (ogrenci_id,)
     )
-    # Rozetleri ikonlu hale getir
     rozetler = []
     for r in imlec.fetchall():
         ad = r["rozet_adi"]
@@ -293,7 +259,7 @@ def harita():
         rozetler.append({"ad": ad, "ikon": ikon})
 
     imlec.execute("""
-        SELECT COUNT(DISTINCT oyun_no || '-' || ana_bolum || '-' || ara_bolum) as sayi
+        SELECT COUNT(DISTINCT oyun_no || '-' || ana_bolum) as sayi
         FROM ilerleme
         WHERE ogrenci_id = ?
           AND tamamlandi = 1
@@ -301,7 +267,6 @@ def harita():
     """, (ogrenci_id,))
     bugun_oynanan = imlec.fetchone()["sayi"]
 
-        # Günlük hedef (şimdilik 3)
     gunluk_hedef = 3
 
     # Seri bilgisi
@@ -313,24 +278,20 @@ def harita():
     seri_gun = seri_satir["seri_gun"] if seri_satir and seri_satir["seri_gun"] else 0
     son_oynama = seri_satir["son_oynama_tarihi"] if seri_satir else None
 
-    # Bugün oynamadıysa seri aslında kırılmış olabilir — bunu kontrol et
-    from datetime import date, timedelta
     bugun = date.today().isoformat()
     dun = (date.today() - timedelta(days=1)).isoformat()
     if son_oynama and son_oynama not in (bugun, dun):
-        # Bugün veya dün değilse seri kırılmıştır (görsel olarak 0 göster)
-        # Ama veritabanındaki değeri hemen silmiyoruz, oyun oynayınca düzelir
         seri_gun_goster = 0
     else:
         seri_gun_goster = seri_gun
-        # Takılı ekipmanları al
+
+    # Takılı ekipmanları al
     imlec.execute("""
         SELECT ekipman_no FROM ogrenci_ekipman
         WHERE ogrenci_id = ? AND takili = 1
     """, (ogrenci_id,))
     takili_ekipman_nolar = [r["ekipman_no"] for r in imlec.fetchall()]
 
-    # Kategorilere göre ayır
     takili_ekipmanlar = {
         "sapka": None,
         "gozluk": None,
@@ -380,6 +341,7 @@ def harita():
 
 @app.route("/bolum/<int:no>")
 def bolum_detay(no):
+    """Bir bölümün oyun listesini göster."""
     if session.get("rol") != "ogrenci":
         return redirect(url_for("ana_sayfa"))
 
@@ -388,78 +350,29 @@ def bolum_detay(no):
         return "Bölüm bulunamadı", 404
 
     ogrenci_id = session["kullanici_id"]
-    conn = db.baglan()
-    imlec = conn.cursor()
 
-    imlec.execute("""
-        SELECT ara_bolum, COUNT(DISTINCT oyun_no) as tamamlanan_oyun
-        FROM ilerleme
-        WHERE ogrenci_id = ? AND ana_bolum = ? AND tamamlandi = 1
-        GROUP BY ara_bolum
-    """, (ogrenci_id, no))
-    biten_ara = {s["ara_bolum"] for s in imlec.fetchall()}
+    # Bölüm açık mı? (1. bölüm her zaman açık)
+    if no != 1:
+        biten = biten_bolumleri_getir(ogrenci_id)
+        if (no - 1) not in biten:
+            return redirect(url_for("harita"))
 
-    ara_bolumler = []
-    for ara_no in range(1, bl.ARA_BOLUM_SAYISI + 1):
-        atamalar = atama_listesi_getir(no, ara_no)
-        oyun_sayisi = len(atamalar)
+    # Bu bölümdeki oyun atamaları
+    atamalar = atama_listesi_getir(no)
 
-        imlec.execute("""
-            SELECT COUNT(DISTINCT oyun_no) as bitirilen
-            FROM ilerleme
-            WHERE ogrenci_id = ? AND ana_bolum = ? AND ara_bolum = ? AND tamamlandi = 1
-        """, (ogrenci_id, no, ara_no))
-        bitirilen = imlec.fetchone()["bitirilen"]
-
-        bitti = (oyun_sayisi > 0) and (bitirilen >= oyun_sayisi)
-        acik = (ara_no == 1) or ((ara_no - 1) in biten_ara)
-
-        ara_bolumler.append({
-            "no": ara_no,
-            "ad": f"Görev {ara_no}",
-            "emoji": "📖",
-            "acik": acik,
-            "bitti": bitti,
-            "oyun_sayisi": oyun_sayisi,
-        })
-
-    conn.close()
-
-    tamamlanan = sum(1 for a in ara_bolumler if a["bitti"])
-    yuzde = int(tamamlanan / bl.ARA_BOLUM_SAYISI * 100)
-
-    return render_template(
-        "ara_bolum.html",
-        bolum=bolum,
-        ara_bolumler=ara_bolumler,
-        tamamlanan=tamamlanan,
-        yuzde=yuzde,
-    )
-
-
-@app.route("/bolum/<int:ana_no>/ara/<int:ara_no>")
-def oyun_listesi(ana_no, ara_no):
-    if session.get("rol") != "ogrenci":
-        return redirect(url_for("ana_sayfa"))
-
-    bolum = bl.ana_bolum_getir(ana_no)
-    if not bolum:
-        return "Bölüm bulunamadı", 404
-
-    atamalar = atama_listesi_getir(ana_no, ara_no)
-
-    ogrenci_id = session["kullanici_id"]
+    # Öğrencinin ilerlemesi
     conn = db.baglan()
     imlec = conn.cursor()
     imlec.execute("""
         SELECT oyun_no, MAX(yildiz) as yildiz
         FROM ilerleme
-        WHERE ogrenci_id = ? AND ana_bolum = ? AND ara_bolum = ? AND tamamlandi = 1
+        WHERE ogrenci_id = ? AND ana_bolum = ? AND tamamlandi = 1
         GROUP BY oyun_no
-    """, (ogrenci_id, ana_no, ara_no))
-    ilerleme_dict = {s["oyun_no"]: s["yildiz"] for s in imlec.fetchall()}
+    """, (ogrenci_id, no))
+    ilerleme_dict = {r["oyun_no"]: r["yildiz"] for r in imlec.fetchall()}
     conn.close()
 
+    # Oyun listesi
     oyunlar = []
     for a in atamalar:
         o = bl.oyun_getir(a["oyun_no"])
@@ -477,13 +390,12 @@ def oyun_listesi(ana_no, ara_no):
     return render_template(
         "oyun_listesi.html",
         bolum=bolum,
-        ara_no=ara_no,
         oyunlar=oyunlar,
     )
 
 
-@app.route("/oyun/<int:ana_no>/<int:ara_no>/<int:oyun_no>")
-def oyun_oyna(ana_no, ara_no, oyun_no):
+@app.route("/oyun/<int:ana_no>/<int:oyun_no>")
+def oyun_oyna(ana_no, oyun_no):
     """Bir oyunu başlat."""
     if session.get("rol") != "ogrenci":
         return redirect(url_for("ana_sayfa"))
@@ -494,10 +406,12 @@ def oyun_oyna(ana_no, ara_no, oyun_no):
 
     oyun = {**oyun, "no": oyun_no}
 
-    atamalar = atama_listesi_getir(ana_no, ara_no)
+    # Bu oyun bu bölümde mi?
+    atamalar = atama_listesi_getir(ana_no)
     if not any(a["oyun_no"] == oyun_no for a in atamalar):
         return "Bu oyun bu bölümde değil", 404
 
+    # Özel veri var mı?
     ozel_veri_json = None
     for a in atamalar:
         if a["oyun_no"] == oyun_no:
@@ -519,7 +433,7 @@ def oyun_oyna(ana_no, ara_no, oyun_no):
         "oyun.html",
         oyun=oyun,
         ana_no=ana_no,
-        ara_no=ara_no,
+        ara_no=0,
         sorular=sorular,
     )
 
@@ -536,7 +450,6 @@ def oyun_kaydet():
 
     ogrenci_id = session["kullanici_id"]
     ana_bolum = veri.get("ana_bolum")
-    ara_bolum = veri.get("ara_bolum")
     oyun_no = veri.get("oyun_no")
     yildiz = veri.get("yildiz", 0)
 
@@ -548,8 +461,8 @@ def oyun_kaydet():
 
     imlec.execute("""
         SELECT id, yildiz FROM ilerleme
-        WHERE ogrenci_id = ? AND ana_bolum = ? AND ara_bolum = ? AND oyun_no = ?
-    """, (ogrenci_id, ana_bolum, ara_bolum, oyun_no))
+        WHERE ogrenci_id = ? AND ana_bolum = ? AND oyun_no = ?
+    """, (ogrenci_id, ana_bolum, oyun_no))
     mevcut = imlec.fetchone()
 
     if mevcut:
@@ -563,18 +476,15 @@ def oyun_kaydet():
             mesaj = "Mevcut yıldız korundu"
     else:
         imlec.execute("""
-            INSERT INTO ilerleme (ogrenci_id, ana_bolum, ara_bolum, oyun_no, yildiz, tamamlandi)
-            VALUES (?, ?, ?, ?, ?, 1)
-        """, (ogrenci_id, ana_bolum, ara_bolum, oyun_no, yildiz))
+            INSERT INTO ilerleme (ogrenci_id, ana_bolum, oyun_no, yildiz, tamamlandi)
+            VALUES (?, ?, ?, ?, 1)
+        """, (ogrenci_id, ana_bolum, oyun_no, yildiz))
         mesaj = "İlk kez kaydedildi!"
 
     conn.commit()
     conn.close()
 
-    # Rozet kontrolü
     yeni_rozetler = rozet_kontrol(ogrenci_id)
-
-    # Seri güncelleme
     yeni_seri = seri_guncelle(ogrenci_id)
 
     return {
@@ -657,6 +567,7 @@ def siralama():
         kullanici_id=session.get("kullanici_id"),
     )
 
+
 # ============================================
 # HAFTALIK ÖZET
 # ============================================
@@ -667,20 +578,16 @@ def haftalik_ozet():
     if session.get("rol") != "ogrenci":
         return redirect(url_for("ana_sayfa"))
 
-    from datetime import date, timedelta
-
     ogrenci_id = session["kullanici_id"]
     bugun = date.today()
 
-    # Türkçe gün isimleri (0=Pazartesi, 6=Pazar)
     TURKCE_GUNLER = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
     TURKCE_GUNLER_UZUN = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
 
-    # Son 7 günün listesi (eskiden yeniye)
     gunler = []
     for i in range(6, -1, -1):
         gun = bugun - timedelta(days=i)
-        gun_index = gun.weekday()  # 0=Pazartesi, 6=Pazar
+        gun_index = gun.weekday()
         gunler.append({
             "tarih": gun.isoformat(),
             "kisa": TURKCE_GUNLER[gun_index],
@@ -695,12 +602,11 @@ def haftalik_ozet():
     conn = db.baglan()
     imlec = conn.cursor()
 
-    # Son 7 gündeki oyun kayıtları (günlük kırılım)
     yedi_gun_once = (bugun - timedelta(days=6)).isoformat()
     imlec.execute("""
         SELECT DATE(tarih, 'localtime') as gun,
                COALESCE(SUM(yildiz), 0) as toplam_yildiz,
-               COUNT(DISTINCT oyun_no || '-' || ana_bolum || '-' || ara_bolum) as oyun_sayisi
+               COUNT(DISTINCT oyun_no || '-' || ana_bolum) as oyun_sayisi
         FROM ilerleme
         WHERE ogrenci_id = ?
           AND tamamlandi = 1
@@ -714,7 +620,6 @@ def haftalik_ozet():
             gun_dict[g]["yildiz"] = r["toplam_yildiz"]
             gun_dict[g]["oyun"] = r["oyun_sayisi"]
 
-    # Son 7 gündeki rozetler
     imlec.execute("""
         SELECT DATE(tarih, 'localtime') as gun, COUNT(*) as sayi
         FROM rozetler
@@ -728,28 +633,20 @@ def haftalik_ozet():
         if g in gun_dict:
             gun_dict[g]["rozet"] = r["sayi"]
 
-    # Toplam haftalık
     toplam_yildiz = sum(g["yildiz"] for g in gunler)
     toplam_oyun = sum(g["oyun"] for g in gunler)
     toplam_rozet = sum(g["rozet"] for g in gunler)
 
-    # Kaç gün oynadı?
     oynanan_gun = sum(1 for g in gunler if g["oyun"] > 0)
 
-    # En iyi gün (en çok yıldız)
     en_iyi_gun = max(gunler, key=lambda x: x["yildiz"]) if toplam_yildiz > 0 else None
 
-    # Grafik için maksimum yıldız değeri
     max_yildiz = max((g["yildiz"] for g in gunler), default=0)
     if max_yildiz == 0:
-        max_yildiz = 1  # sıfıra bölünmesin
+        max_yildiz = 1
 
-    # Her gün için yüzde hesapla
     for g in gunler:
         g["yuzde"] = int(g["yildiz"] / max_yildiz * 100)
-
-    # Geçen hafta ile kıyaslama (opsiyonel basit versiyon)
-    # (Şimdilik atlıyoruz, istersen ekleriz)
 
     conn.close()
 
@@ -763,6 +660,8 @@ def haftalik_ozet():
         en_iyi_gun=en_iyi_gun,
         ad_soyad=session.get("ad_soyad", "Öğrenci"),
     )
+
+
 # ============================================
 # EKİPMAN SİSTEMİ
 # ============================================
@@ -777,7 +676,6 @@ def ekipman_magaza():
     conn = db.baglan()
     imlec = conn.cursor()
 
-    # Kullanılabilir yıldız hesapla
     imlec.execute(
         "SELECT COALESCE(SUM(yildiz), 0) as toplam FROM ilerleme WHERE ogrenci_id = ?",
         (ogrenci_id,)
@@ -791,7 +689,6 @@ def ekipman_magaza():
     harcanan = imlec.fetchone()["harcanan"]
     kullanilabilir = toplam_yildiz - harcanan
 
-    # Öğrencinin sahip olduğu ekipmanlar
     imlec.execute(
         "SELECT ekipman_no, takili FROM ogrenci_ekipman WHERE ogrenci_id = ?",
         (ogrenci_id,)
@@ -800,7 +697,6 @@ def ekipman_magaza():
 
     conn.close()
 
-    # Kataloğu kategori bazlı hazırla
     kategoriler = []
     for kat in bl.ekipman_kategorileri():
         esyalar = []
@@ -841,7 +737,6 @@ def ekipman_ac(ekipman_no):
     conn = db.baglan()
     imlec = conn.cursor()
 
-    # Zaten sahip mi?
     imlec.execute(
         "SELECT id FROM ogrenci_ekipman WHERE ogrenci_id = ? AND ekipman_no = ?",
         (ogrenci_id, ekipman_no)
@@ -850,7 +745,6 @@ def ekipman_ac(ekipman_no):
         conn.close()
         return redirect(url_for("ekipman_magaza", hata="Bu ekipman zaten sende! 😊"))
 
-    # Yeterli yıldız var mı?
     imlec.execute(
         "SELECT COALESCE(SUM(yildiz), 0) as toplam FROM ilerleme WHERE ogrenci_id = ?",
         (ogrenci_id,)
@@ -869,7 +763,6 @@ def ekipman_ac(ekipman_no):
         eksik = ekipman["fiyat"] - kullanilabilir
         return redirect(url_for("ekipman_magaza", hata=f"Yeterli yıldızın yok! {eksik} ⭐ daha toplaman gerekiyor. 💪"))
 
-    # Satın al
     imlec.execute(
         "INSERT INTO ogrenci_ekipman (ogrenci_id, ekipman_no, takili) VALUES (?, ?, 0)",
         (ogrenci_id, ekipman_no)
@@ -899,7 +792,6 @@ def ekipman_tak(ekipman_no):
     conn = db.baglan()
     imlec = conn.cursor()
 
-    # Bu ekipman öğrencide var mı?
     imlec.execute(
         "SELECT id, takili FROM ogrenci_ekipman WHERE ogrenci_id = ? AND ekipman_no = ?",
         (ogrenci_id, ekipman_no)
@@ -911,9 +803,7 @@ def ekipman_tak(ekipman_no):
 
     yeni_durum = 0 if kayit["takili"] == 1 else 1
 
-    # Aynı kategoride başka bir ekipman takılıysa çıkar
     if yeni_durum == 1:
-        # Bu kategorideki diğer takılı ekipmanları bul
         ayni_kategori_nolar = [
             no for no, e in bl.EKIPMANLAR.items()
             if e["kategori"] == ekipman["kategori"] and no != ekipman_no
@@ -936,6 +826,8 @@ def ekipman_tak(ekipman_no):
         return redirect(url_for("ekipman_magaza", mesaj=f"✨ {ekipman['emoji']} {ekipman['ad']} takıldı! Harika görünüyorsun!"))
     else:
         return redirect(url_for("ekipman_magaza", mesaj=f"📤 {ekipman['emoji']} {ekipman['ad']} çıkarıldı."))
+
+
 # ============================================
 # ÖĞRETMEN PANELİ
 # ============================================
@@ -970,30 +862,23 @@ def ogretmen_panel():
         )
         rozet_sayisi = imlec.fetchone()["sayi"]
 
-        imlec.execute("""
-            SELECT ana_bolum, COUNT(DISTINCT ara_bolum) as tamamlanan
-            FROM ilerleme
-            WHERE ogrenci_id = ? AND tamamlandi = 1
-            GROUP BY ana_bolum
-        """, (oid,))
-        biten = set()
-        for s in imlec.fetchall():
-            if s["tamamlanan"] >= bl.ARA_BOLUM_SAYISI:
-                biten.add(s["ana_bolum"])
+        # Biten bölümleri yeni sistemle hesapla
+        biten = biten_bolumleri_getir(oid)
 
         rutbe = "Acemi Kâşif"
         for r in bl.RUTBELER:
             if all(bn in biten for bn in r["bolumler"]):
                 rutbe = f"{r['sembol']} {r['ad']}"
 
+        # Konum bilgisi (son oynanan bölüm)
         imlec.execute("""
-            SELECT ana_bolum, ara_bolum FROM ilerleme
+            SELECT ana_bolum FROM ilerleme
             WHERE ogrenci_id = ?
             ORDER BY tarih DESC LIMIT 1
         """, (oid,))
         son = imlec.fetchone()
         if son:
-            konum = f"Bölüm {son['ana_bolum']} / Ara {son['ara_bolum']}"
+            konum = f"Bölüm {son['ana_bolum']}"
         else:
             konum = "Henüz başlamadı"
 
@@ -1035,36 +920,38 @@ def ogrenci_detay(ogrenci_id):
         conn.close()
         return "Öğrenci bulunamadı", 404
 
-    imlec.execute("""
-        SELECT ana_bolum,
-               COUNT(DISTINCT ara_bolum) as tamamlanan,
-               COALESCE(SUM(yildiz), 0) as toplam_yildiz
-        FROM ilerleme
-        WHERE ogrenci_id = ? AND tamamlandi = 1
-        GROUP BY ana_bolum
-    """, (ogrenci_id,))
-    bolum_verisi = {}
-    for s in imlec.fetchall():
-        bolum_verisi[s["ana_bolum"]] = {
-            "tamamlanan": s["tamamlanan"],
-            "toplam_yildiz": s["toplam_yildiz"],
-        }
+    # Bu öğrencinin bitirdiği bölümler
+    biten_bolumler = biten_bolumleri_getir(ogrenci_id)
 
+    # Her bölüm için: toplam atama sayısı ve bitirilen oyun sayısı
     bolum_listesi = []
-    biten_bolumler = set()
     for b in bl.ANA_BOLUMLER:
         no = b["no"]
-        v = bolum_verisi.get(no, {"tamamlanan": 0, "toplam_yildiz": 0})
-        bitti = v["tamamlanan"] >= bl.ARA_BOLUM_SAYISI
-        if bitti:
-            biten_bolumler.add(no)
 
-        yuzde = int(v["tamamlanan"] / bl.ARA_BOLUM_SAYISI * 100)
+        toplam_atama = atama_sayisi(no)
+
+        imlec.execute("""
+            SELECT COUNT(DISTINCT oyun_no) as biten
+            FROM ilerleme
+            WHERE ogrenci_id = ? AND ana_bolum = ? AND tamamlandi = 1
+        """, (ogrenci_id, no))
+        biten_oyun = imlec.fetchone()["biten"]
+
+        imlec.execute("""
+            SELECT COALESCE(SUM(yildiz), 0) as toplam
+            FROM ilerleme
+            WHERE ogrenci_id = ? AND ana_bolum = ? AND tamamlandi = 1
+        """, (ogrenci_id, no))
+        toplam_yildiz_b = imlec.fetchone()["toplam"]
+
+        yuzde = int(biten_oyun / toplam_atama * 100) if toplam_atama > 0 else 0
+        bitti = (no in biten_bolumler)
 
         bolum_listesi.append({
             **b,
-            "tamamlanan": v["tamamlanan"],
-            "toplam_yildiz": v["toplam_yildiz"],
+            "tamamlanan": biten_oyun,
+            "toplam_atama": toplam_atama,
+            "toplam_yildiz": toplam_yildiz_b,
             "yuzde": yuzde,
             "bitti": bitti,
         })
@@ -1144,17 +1031,13 @@ def admin_panel():
     toplam_rozet = imlec.fetchone()["s"]
 
     imlec.execute("""
-        SELECT ana_bolum, ara_bolum, COUNT(*) as sayi
+        SELECT ana_bolum, COUNT(*) as sayi
         FROM oyun_atamalari
-        GROUP BY ana_bolum, ara_bolum
+        GROUP BY ana_bolum
     """)
     atama_sayilari = {}
     for r in imlec.fetchall():
-        ana = r["ana_bolum"]
-        ara = r["ara_bolum"]
-        if ana not in atama_sayilari:
-            atama_sayilari[ana] = {}
-        atama_sayilari[ana][ara] = r["sayi"]
+        atama_sayilari[r["ana_bolum"]] = r["sayi"]
 
     conn.close()
 
@@ -1168,7 +1051,6 @@ def admin_panel():
         admin_adi=session.get("ad_soyad", "Admin"),
         oyunlar=bl.OYUNLAR,
         bolumler=bl.ANA_BOLUMLER,
-        ara_sayisi=bl.ARA_BOLUM_SAYISI,
         atama_sayilari=atama_sayilari,
         aktif_sayfa="panel",
     )
@@ -1277,9 +1159,9 @@ def admin_sifre_sifirla(kullanici_id):
 # ADMIN — OYUN ATAMA
 # ============================================
 
-@app.route("/admin/oyun-atama/<int:ana>/<int:ara>")
-def admin_oyun_atama(ana, ara):
-    """Belirli bir ara bölümün atamalarını yönet."""
+@app.route("/admin/oyun-atama/<int:ana>")
+def admin_oyun_atama(ana):
+    """Belirli bir bölümün oyun atamalarını yönet."""
     if session.get("rol") != "admin":
         return redirect(url_for("ana_sayfa"))
 
@@ -1287,7 +1169,7 @@ def admin_oyun_atama(ana, ara):
     if not bolum:
         return "Bölüm bulunamadı", 404
 
-    atamalar = atama_listesi_getir(ana, ara)
+    atamalar = atama_listesi_getir(ana)
 
     for a in atamalar:
         o = bl.oyun_getir(a["oyun_no"])
@@ -1303,7 +1185,6 @@ def admin_oyun_atama(ana, ara):
         "admin_oyun_atama.html",
         bolum=bolum,
         ana=ana,
-        ara=ara,
         atamalar=atamalar,
         oyunlar=bl.OYUNLAR,
     )
@@ -1316,25 +1197,24 @@ def admin_oyun_ata():
         return redirect(url_for("ana_sayfa"))
 
     ana = int(request.form.get("ana", 0))
-    ara = int(request.form.get("ara", 0))
     oyun_no = int(request.form.get("oyun_no", 0))
 
-    if not (ana and ara and oyun_no):
-        return redirect(url_for("admin_oyun_atama", ana=ana, ara=ara))
+    if not (ana and oyun_no):
+        return redirect(url_for("admin_panel"))
 
     conn = db.baglan()
     imlec = conn.cursor()
 
     imlec.execute(
-        "SELECT COALESCE(MAX(sira), 0) as son FROM oyun_atamalari WHERE ana_bolum = ? AND ara_bolum = ?",
-        (ana, ara)
+        "SELECT COALESCE(MAX(sira), 0) as son FROM oyun_atamalari WHERE ana_bolum = ?",
+        (ana,)
     )
     yeni_sira = imlec.fetchone()["son"] + 1
 
     try:
         imlec.execute(
-            "INSERT INTO oyun_atamalari (ana_bolum, ara_bolum, sira, oyun_no) VALUES (?, ?, ?, ?)",
-            (ana, ara, yeni_sira, oyun_no)
+            "INSERT INTO oyun_atamalari (ana_bolum, sira, oyun_no) VALUES (?, ?, ?)",
+            (ana, yeni_sira, oyun_no)
         )
         conn.commit()
         mesaj = f"✅ Oyun eklendi (sıra {yeni_sira})"
@@ -1342,7 +1222,7 @@ def admin_oyun_ata():
         mesaj = f"⚠️ Hata: {str(e)}"
 
     conn.close()
-    return redirect(url_for("admin_oyun_atama", ana=ana, ara=ara, mesaj=mesaj))
+    return redirect(url_for("admin_oyun_atama", ana=ana, mesaj=mesaj))
 
 
 @app.route("/admin/oyun-atama-sil/<int:atama_id>", methods=["POST"])
@@ -1355,7 +1235,7 @@ def admin_oyun_atama_sil(atama_id):
     imlec = conn.cursor()
 
     imlec.execute(
-        "SELECT ana_bolum, ara_bolum FROM oyun_atamalari WHERE id = ?",
+        "SELECT ana_bolum FROM oyun_atamalari WHERE id = ?",
         (atama_id,)
     )
     atama = imlec.fetchone()
@@ -1364,13 +1244,12 @@ def admin_oyun_atama_sil(atama_id):
         return redirect(url_for("admin_panel"))
 
     ana = atama["ana_bolum"]
-    ara = atama["ara_bolum"]
 
     imlec.execute("DELETE FROM oyun_atamalari WHERE id = ?", (atama_id,))
     conn.commit()
     conn.close()
 
-    return redirect(url_for("admin_oyun_atama", ana=ana, ara=ara, mesaj="🗑️ Atama silindi"))
+    return redirect(url_for("admin_oyun_atama", ana=ana, mesaj="🗑️ Atama silindi"))
 
 
 @app.route("/admin/oyun-atama-tasi/<int:atama_id>/<yon>", methods=["POST"])
@@ -1383,7 +1262,7 @@ def admin_oyun_atama_tasi(atama_id, yon):
     imlec = conn.cursor()
 
     imlec.execute(
-        "SELECT id, ana_bolum, ara_bolum, sira FROM oyun_atamalari WHERE id = ?",
+        "SELECT id, ana_bolum, sira FROM oyun_atamalari WHERE id = ?",
         (atama_id,)
     )
     atama = imlec.fetchone()
@@ -1392,7 +1271,6 @@ def admin_oyun_atama_tasi(atama_id, yon):
         return redirect(url_for("admin_panel"))
 
     ana = atama["ana_bolum"]
-    ara = atama["ara_bolum"]
     eski_sira = atama["sira"]
 
     if yon == "yukari":
@@ -1401,8 +1279,8 @@ def admin_oyun_atama_tasi(atama_id, yon):
         yeni_sira = eski_sira + 1
 
     imlec.execute(
-        "SELECT id, sira FROM oyun_atamalari WHERE ana_bolum = ? AND ara_bolum = ? AND sira = ?",
-        (ana, ara, yeni_sira)
+        "SELECT id, sira FROM oyun_atamalari WHERE ana_bolum = ? AND sira = ?",
+        (ana, yeni_sira)
     )
     diger = imlec.fetchone()
 
@@ -1422,7 +1300,7 @@ def admin_oyun_atama_tasi(atama_id, yon):
     conn.commit()
     conn.close()
 
-    return redirect(url_for("admin_oyun_atama", ana=ana, ara=ara))
+    return redirect(url_for("admin_oyun_atama", ana=ana))
 
 
 @app.route("/admin/oyun-icerik/<int:atama_id>")
@@ -1434,7 +1312,7 @@ def admin_oyun_icerik(atama_id):
     conn = db.baglan()
     imlec = conn.cursor()
     imlec.execute("""
-        SELECT id, ana_bolum, ara_bolum, sira, oyun_no, ozel_veri
+        SELECT id, ana_bolum, sira, oyun_no, ozel_veri
         FROM oyun_atamalari WHERE id = ?
     """, (atama_id,))
     atama_ham = imlec.fetchone()
@@ -1471,7 +1349,7 @@ def admin_oyun_icerik_kaydet(atama_id):
     imlec = conn.cursor()
 
     imlec.execute(
-        "SELECT ana_bolum, ara_bolum FROM oyun_atamalari WHERE id = ?",
+        "SELECT ana_bolum FROM oyun_atamalari WHERE id = ?",
         (atama_id,)
     )
     atama = imlec.fetchone()

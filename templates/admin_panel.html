@@ -149,11 +149,12 @@
 
     <div class="atama-bolum-wrapper">
         <p class="atama-bilgi-yazi">
-            Her bölüm ve ara bölüm için tıklayarak oyun atayabilirsin. Atanan oyunlar öğrenciye bu sırayla gösterilir.
+            Her bölüme tıklayarak oyun atayabilirsin. Atanan oyunlar öğrenciye bu sırayla gösterilir.
         </p>
 
         {% for b in bolumler %}
-        <div class="atama-bolum-kart">
+        {% set sayi = atama_sayilari.get(b.no, 0) %}
+        <a href="/admin/oyun-atama/{{ b.no }}" class="atama-bolum-kart atama-bolum-link">
             <div class="atama-bolum-baslik">
                 <img src="{{ url_for('static', filename='img/' + b.resim) }}" alt="{{ b.ad }}">
                 <div>
@@ -161,21 +162,16 @@
                 </div>
             </div>
 
-            <div class="atama-ara-grid">
-                {% for ara in range(1, ara_sayisi + 1) %}
-                {% set sayi = atama_sayilari.get(b.no, {}).get(ara, 0) %}
-                <a href="/admin/oyun-atama/{{ b.no }}/{{ ara }}"
-                   class="atama-ara-btn {% if sayi > 0 %}atama-dolu{% else %}atama-bos{% endif %}">
-                    <div class="atama-ara-no">Görev {{ ara }}</div>
-                    {% if sayi > 0 %}
-                        <div class="atama-ara-sayi">🎮 {{ sayi }} oyun</div>
-                    {% else %}
-                        <div class="atama-ara-sayi bos">(boş)</div>
-                    {% endif %}
-                </a>
-                {% endfor %}
+            <div class="atama-durum">
+                {% if sayi > 0 %}
+                    <div class="atama-sayi-buyuk">🎮 {{ sayi }} oyun</div>
+                    <div class="atama-durum-yazi">Düzenlemek için tıkla →</div>
+                {% else %}
+                    <div class="atama-sayi-buyuk bos">(boş)</div>
+                    <div class="atama-durum-yazi">Oyun eklemek için tıkla →</div>
+                {% endif %}
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
 

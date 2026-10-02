@@ -18,12 +18,15 @@
         </div>
         <div class="panel-bilgi">
             <h1>Bölüm {{ bolum.no }}: {{ bolum.ad }}</h1>
-            <p>Görev {{ ara }} — Oyun Atamaları</p>
+            <p>Bölüm Oyun Atamaları</p>
         </div>
     </div>
 
     {% if request.args.get('mesaj') %}
         <div class="bildirim bildirim-basari">✅ {{ request.args.get('mesaj') }}</div>
+    {% endif %}
+    {% if request.args.get('hata') %}
+        <div class="bildirim bildirim-hata">⚠️ {{ request.args.get('hata') }}</div>
     {% endif %}
 
     <!-- Yeni Oyun Ekleme Formu -->
@@ -32,7 +35,6 @@
     <div class="ekle-formu">
         <form method="POST" action="/admin/oyun-ata">
             <input type="hidden" name="ana" value="{{ ana }}">
-            <input type="hidden" name="ara" value="{{ ara }}">
 
             <div class="form-alan">
                 <label>Oyun Seç</label>
@@ -44,12 +46,12 @@
                 </select>
             </div>
 
-            <button type="submit" class="ekle-btn">+ Bu Göreve Ekle</button>
+            <button type="submit" class="ekle-btn">+ Bu Bölüme Ekle</button>
         </form>
     </div>
 
     <!-- Mevcut Atamalar -->
-    <h2 class="liste-baslik">📋 Bu Görevdeki Oyunlar ({{ atamalar|length }})</h2>
+    <h2 class="liste-baslik">📋 Bu Bölümdeki Oyunlar ({{ atamalar|length }})</h2>
 
     {% if atamalar %}
     <div class="atama-liste">
@@ -86,7 +88,7 @@
                 <a href="/admin/oyun-icerik/{{ a.id }}" class="kucuk-btn icerik-btn" title="İçeriği Düzenle">✏️</a>
 
                 <form method="POST" action="/admin/oyun-atama-sil/{{ a.id }}" style="display:inline;"
-                      onsubmit="return confirm('Bu oyunu bu görevden çıkarmak istediğine emin misin?');">
+                      onsubmit="return confirm('Bu oyunu bu bölümden çıkarmak istediğine emin misin?');">
                     <button type="submit" class="kucuk-btn sil-btn" title="Sil">🗑️</button>
                 </form>
             </div>
@@ -95,7 +97,7 @@
     </div>
     {% else %}
     <div class="bos-mesaj-panel">
-        <p>📭 Bu göreve henüz oyun atanmamış.</p>
+        <p>📭 Bu bölüme henüz oyun atanmamış.</p>
         <p>Yukarıdaki formdan oyun ekleyebilirsin.</p>
     </div>
     {% endif %}

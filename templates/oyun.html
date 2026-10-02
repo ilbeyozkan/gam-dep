@@ -3,7 +3,7 @@
 {% block baslik %}{{ oyun.ad }} — Oyna{% endblock %}
 
 {% block menu %}
-<a href="/bolum/{{ ana_no }}/ara/{{ ara_no }}">← Geri</a>
+<a href="/bolum/{{ ana_no }}">← Geri</a>
 <a href="/harita">🗺️ Harita</a>
 <a href="/cikis" class="cikis-btn">Çıkış 🚪</a>
 {% endblock %}
@@ -30,7 +30,7 @@
         <p id="sonuc-mesaj">Sonuç</p>
         <div class="sonuc-yildizlar" id="sonuc-yildizlar"></div>
         <div class="sonuc-butonlar">
-            <a href="/bolum/{{ ana_no }}/ara/{{ ara_no }}" class="btn-ana">← Oyun Listesine Dön</a>
+            <a href="/bolum/{{ ana_no }}" class="btn-ana">← Oyun Listesine Dön</a>
             <button onclick="location.reload()" class="btn-tekrar">🔄 Tekrar Oyna</button>
         </div>
     </div>

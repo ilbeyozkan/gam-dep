@@ -6716,3 +6716,46 @@ body {
         font-size: 11px !important;
     }
 }
+/* ============================================ */
+/* ============ YENİ ATAMA KARTLARI ============ */
+/* ============================================ */
+
+.atama-bolum-link {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none !important;
+    color: inherit;
+    padding: 20px 25px !important;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.atama-bolum-link:hover {
+    transform: translateX(8px);
+    box-shadow: 0 10px 25px rgba(118, 75, 162, 0.3);
+}
+
+.atama-durum {
+    text-align: right;
+    padding-left: 20px;
+}
+
+.atama-sayi-buyuk {
+    font-size: 18px;
+    font-weight: 900;
+    color: #2e7d32;
+    margin-bottom: 3px;
+}
+
+.atama-sayi-buyuk.bos {
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.atama-durum-yazi {
+    font-size: 12px;
+    color: #764ba2;
+    font-weight: 600;
+}
