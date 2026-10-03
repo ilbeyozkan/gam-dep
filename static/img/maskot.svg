@@ -1,0 +1,56 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="turuncu" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#FFB74D"/>
+      <stop offset="100%" stop-color="#E65100"/>
+    </radialGradient>
+    <radialGradient id="beyaz" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F5F5F5"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Kuyruk -->
+  <path d="M40,150 Q20,120 30,90 Q40,70 55,85 Q60,100 50,120 Z" fill="url(#turuncu)"/>
+  <path d="M30,90 Q40,80 50,90 Q45,100 40,95 Z" fill="white"/>
+
+  <!-- Gövde -->
+  <ellipse cx="100" cy="150" rx="45" ry="35" fill="url(#turuncu)"/>
+  <ellipse cx="100" cy="155" rx="30" ry="22" fill="url(#beyaz)"/>
+
+  <!-- Bacaklar -->
+  <ellipse cx="80" cy="180" rx="12" ry="8" fill="#E65100"/>
+  <ellipse cx="120" cy="180" rx="12" ry="8" fill="#E65100"/>
+
+  <!-- Baş -->
+  <ellipse cx="100" cy="95" rx="50" ry="45" fill="url(#turuncu)"/>
+
+  <!-- Kulaklar -->
+  <path d="M55,70 L45,30 L85,55 Z" fill="url(#turuncu)"/>
+  <path d="M145,70 L155,30 L115,55 Z" fill="url(#turuncu)"/>
+  <path d="M58,65 L52,42 L78,58 Z" fill="#FF7043"/>
+  <path d="M142,65 L148,42 L122,58 Z" fill="#FF7043"/>
+
+  <!-- Yanaklar (beyaz) -->
+  <ellipse cx="75" cy="105" rx="22" ry="18" fill="url(#beyaz)"/>
+  <ellipse cx="125" cy="105" rx="22" ry="18" fill="url(#beyaz)"/>
+
+  <!-- Gözler -->
+  <ellipse cx="80" cy="92" rx="9" ry="10" fill="#1A1A1A"/>
+  <ellipse cx="120" cy="92" rx="9" ry="10" fill="#1A1A1A"/>
+  <circle cx="83" cy="89" r="3.5" fill="white"/>
+  <circle cx="123" cy="89" r="3.5" fill="white"/>
+
+  <!-- Burun -->
+  <ellipse cx="100" cy="110" rx="7" ry="5" fill="#1A1A1A"/>
+
+  <!-- Ağız -->
+  <path d="M100,115 Q95,122 90,120" stroke="#1A1A1A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M100,115 Q105,122 110,120" stroke="#1A1A1A" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Bıyıklar -->
+  <line x1="65" y1="108" x2="45" y2="105" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="65" y1="115" x2="45" y2="118" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="135" y1="108" x2="155" y2="105" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="135" y1="115" x2="155" y2="118" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

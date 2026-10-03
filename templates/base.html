@@ -8,10 +8,16 @@
 </head>
 <body>
 
+    <!-- 🎨 Dinamik Arka Plan Katmanı -->
+    <div class="arka-plan-katmani" id="arka-plan-katmani"></div>
+
     <!-- Üst Menü -->
     <header class="ust-menu">
         <div class="header-sol">
-            <!-- Sol boş alan -->
+            <!-- 🔇 Ses Aç/Kapat Butonu -->
+            <button class="ses-toggle-btn" id="ses-toggle-btn" onclick="sesToggle()" title="Sesleri aç/kapat">
+                <span id="ses-toggle-ikon">🔊</span>
+            </button>
         </div>
         <div class="logo-alani">
             <div class="logo">🎮 OYUN-DEP</div>
@@ -42,6 +48,305 @@
         </div>
         <div class="footer-telif">© 2026 Tüm hakları saklıdır.</div>
     </footer>
-    
+
+    <!-- ============================================ -->
+    <!-- 🔊 SES EFEKTLERİ (Web Audio API) -->
+    <!-- ============================================ -->
+    <script>
+        // ============================================
+        // SES MOTORU - Web Audio API
+        // ============================================
+        let sesContext = null;
+        let seslerAcik = true;
+
+        // localStorage'dan tercih oku
+        try {
+            const kayitli = localStorage.getItem("seslerAcik");
+            if (kayitli === "false") seslerAcik = false;
+        } catch (e) {}
+
+        function sesContextAl() {
+            if (!seslerAcik) return null;
+            if (!sesContext) {
+                try {
+                    sesContext = new (window.AudioContext || window.webkitAudioContext)({
+    sampleRate: 44100,
+    latencyHint: "interactive"
+});
+                } catch (e) {
+                    console.warn("Ses sistemi başlatılamadı:", e);
+                    return null;
+                }
+            }
+            if (sesContext.state === "suspended") {
+                sesContext.resume();
+            }
+            return sesContext;
+        }
+
+        function notaCal(frekans, sure, tip, sesSeviyesi, gecikme) {
+            if (!seslerAcik) return;
+            const ctx = sesContextAl();
+            if (!ctx) return;
+
+            tip = tip || "sine";
+            sesSeviyesi = sesSeviyesi || 0.15;
+            gecikme = gecikme || 0;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = tip;
+            osc.frequency.value = frekans;
+
+            const baslangic = ctx.currentTime + gecikme;
+
+            gain.gain.setValueAtTime(0, baslangic);
+            gain.gain.linearRampToValueAtTime(sesSeviyesi, baslangic + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, baslangic + sure);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(baslangic);
+            osc.stop(baslangic + sure);
+        }
+
+        // ----------------------------------------
+        // 🔊 Doğru cevap sesi
+        // ----------------------------------------
+        function sesDogru() {
+            notaCal(880, 0.15, "sine", 0.2, 0);
+            notaCal(1108.73, 0.25, "sine", 0.18, 0.08);
+            notaCal(1318.51, 0.35, "sine", 0.15, 0.16);
+        }
+
+        // ----------------------------------------
+        // ❌ Yanlış cevap sesi
+        // ----------------------------------------
+        function sesYanlis() {
+            notaCal(220, 0.15, "triangle", 0.15, 0);
+            notaCal(196, 0.25, "triangle", 0.13, 0.12);
+            notaCal(174.61, 0.3, "triangle", 0.1, 0.24);
+        }
+
+        // ----------------------------------------
+        // ⭐ Yıldız kazanma sesi
+        // ----------------------------------------
+        function sesYildiz() {
+            notaCal(1318.51, 0.1, "sine", 0.2, 0);
+            notaCal(1567.98, 0.15, "sine", 0.18, 0.06);
+            notaCal(2093.00, 0.4, "sine", 0.15, 0.12);
+        }
+
+        // ----------------------------------------
+        // 🖱️ Buton tıklama sesi
+        // ----------------------------------------
+        function sesButon() {
+            notaCal(1000, 0.05, "square", 0.08, 0);
+        }
+
+        // ----------------------------------------
+        // 🎊 Konfeti sesi
+        // ----------------------------------------
+        function sesKonfeti() {
+            notaCal(523.25, 0.08, "sine", 0.12, 0);
+            notaCal(659.25, 0.08, "sine", 0.12, 0.06);
+            notaCal(783.99, 0.08, "sine", 0.12, 0.12);
+            notaCal(1046.50, 0.15, "sine", 0.12, 0.18);
+        }
+
+        // ----------------------------------------
+        // 🏆 Zafer fanfarı
+        // ----------------------------------------
+        function sesZafer() {
+            const notalar = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
+            notalar.forEach(function (f, i) {
+                notaCal(f, 0.25, "triangle", 0.15, i * 0.12);
+            });
+        }
+
+        // ----------------------------------------
+        // 🚀 Sayfa geçiş sesi
+        // ----------------------------------------
+        function sesWhoosh() {
+            notaCal(300, 0.15, "sine", 0.08, 0);
+            notaCal(400, 0.15, "sine", 0.06, 0.05);
+            notaCal(200, 0.2, "sine", 0.05, 0.1);
+        }
+
+        // ----------------------------------------
+        // 🎵 Başarı melodisi
+        // ----------------------------------------
+        function sesMelodi() {
+            notaCal(659.25, 0.15, "sine", 0.15, 0);
+            notaCal(783.99, 0.15, "sine", 0.15, 0.15);
+            notaCal(1046.50, 0.3, "sine", 0.15, 0.3);
+        }
+
+        // ----------------------------------------
+        // 🔔 Kutlama zili
+        // ----------------------------------------
+        function sesKutlama() {
+            [523.25, 659.25, 783.99, 1046.50].forEach(function (f, i) {
+                notaCal(f, 0.5, "sine", 0.12, i * 0.1);
+            });
+        }
+
+        // ============================================
+        // 🔊 SES AÇ / KAPAT
+        // ============================================
+        function sesToggle() {
+            seslerAcik = !seslerAcik;
+
+            // localStorage'a kaydet
+            try {
+                localStorage.setItem("seslerAcik", seslerAcik ? "true" : "false");
+            } catch (e) {}
+
+            // İkonu güncelle
+            const ikon = document.getElementById("ses-toggle-ikon");
+            if (ikon) ikon.textContent = seslerAcik ? "🔊" : "🔇";
+
+            // Kapalıysa çalan sesleri durdur
+            if (!seslerAcik && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+
+            // Kısa bir tık sesi (açılıyorsa)
+            if (seslerAcik) {
+                notaCal(800, 0.05, "sine", 0.1, 0);
+            }
+        }
+
+        // Sayfa yüklenince ikonu güncelle
+        document.addEventListener("DOMContentLoaded", function () {
+            const ikon = document.getElementById("ses-toggle-ikon");
+            if (ikon) ikon.textContent = seslerAcik ? "🔊" : "🔇";
+        });
+
+        // Kullanıcı ilk tıklamada ses context'ini aç
+        document.addEventListener("click", function ilk() {
+            if (seslerAcik) sesContextAl();
+            document.removeEventListener("click", ilk);
+        }, { once: true });
+
+        // Buton tıklama seslerini otomatik bağla
+        document.addEventListener("click", function (e) {
+            if (!seslerAcik) return;
+            // Ses toggle butonunun kendi tıklama sesi ayrıca çalmasın
+            if (e.target.closest("#ses-toggle-btn")) return;
+            
+            const hedef = e.target.closest("button, .bolum-btn, .oyun-btn, .cevap-btn, .harf-btn, .kafiye-btn, .cumle-btn, .secim-chip, .onayla-btn, .avatar-secenek, .ekipman-btn, .siralama-link-btn");
+            if (hedef && !hedef.disabled) {
+                sesButon();
+            }
+        });
+
+        // ============================================
+        // SESLİ OKUMAYI GÜNCELLE (ses kapalıysa durdur)
+        // ============================================
+        // Oyun sayfalarında tanımlı sesliOku fonksiyonunu override et
+        // (base.html'de tanımlı değil ama oyun.html'de var, kontrol ediliyor)
+    </script>
+
+    <!-- ============================================ -->
+    <!-- 🎨 OTOMATİK ARKA PLAN ALGILAMA VE PARTİKÜLLER -->
+    <!-- ============================================ -->
+    <script>
+        (function () {
+            const path = window.location.pathname;
+            const match = path.match(/^\/(bolum|oyun)\/(\d+)/);
+            if (!match) return;
+
+            const bolumNo = parseInt(match[2]);
+            const arkaPlanlar = { 1: "liman", 2: "orman", 3: "dag", 4: "gol", 5: "kale" };
+            const arkaPlan = arkaPlanlar[bolumNo];
+
+            if (!arkaPlan) return;
+
+            document.body.classList.add("arka-plan-" + arkaPlan);
+            parcalariOlustur(arkaPlan);
+        })();
+
+        function parcalariOlustur(tip) {
+            const katman = document.getElementById("arka-plan-katmani");
+            if (!katman) return;
+
+            if (tip === "liman") {
+                for (let i = 0; i < 4; i++) {
+                    const bulut = document.createElement("div");
+                    bulut.className = "parca parca-bulut";
+                    bulut.style.top = (5 + Math.random() * 25) + "%";
+                    bulut.style.animationDelay = (Math.random() * 20) + "s";
+                    bulut.style.animationDuration = (25 + Math.random() * 15) + "s";
+                    bulut.style.fontSize = (30 + Math.random() * 20) + "px";
+                    bulut.textContent = "☁️";
+                    katman.appendChild(bulut);
+                }
+                for (let i = 0; i < 3; i++) {
+                    const marti = document.createElement("div");
+                    marti.className = "parca parca-marti";
+                    marti.style.top = (15 + Math.random() * 30) + "%";
+                    marti.style.animationDelay = (Math.random() * 15) + "s";
+                    marti.style.animationDuration = (20 + Math.random() * 10) + "s";
+                    marti.style.fontSize = (20 + Math.random() * 10) + "px";
+                    marti.textContent = "🕊️";
+                    katman.appendChild(marti);
+                }
+            }
+            else if (tip === "orman") {
+                const yapraklar = ["🍃", "🍂", "🌿"];
+                for (let i = 0; i < 18; i++) {
+                    const yaprak = document.createElement("div");
+                    yaprak.className = "parca parca-yaprak";
+                    yaprak.style.left = (Math.random() * 100) + "%";
+                    yaprak.style.animationDelay = (Math.random() * 15) + "s";
+                    yaprak.style.animationDuration = (8 + Math.random() * 6) + "s";
+                    yaprak.style.fontSize = (16 + Math.random() * 14) + "px";
+                    yaprak.textContent = yapraklar[Math.floor(Math.random() * yapraklar.length)];
+                    katman.appendChild(yaprak);
+                }
+            }
+            else if (tip === "dag") {
+                for (let i = 0; i < 40; i++) {
+                    const kar = document.createElement("div");
+                    kar.className = "parca parca-kar";
+                    kar.style.left = (Math.random() * 100) + "%";
+                    const boyut = (3 + Math.random() * 5) + "px";
+                    kar.style.width = boyut;
+                    kar.style.height = boyut;
+                    kar.style.animationDelay = (Math.random() * 10) + "s";
+                    kar.style.animationDuration = (6 + Math.random() * 5) + "s";
+                    katman.appendChild(kar);
+                }
+            }
+            else if (tip === "gol") {
+                for (let i = 0; i < 15; i++) {
+                    const balon = document.createElement("div");
+                    balon.className = "parca parca-balon";
+                    balon.style.left = (Math.random() * 100) + "%";
+                    const boyut = (6 + Math.random() * 10) + "px";
+                    balon.style.width = boyut;
+                    balon.style.height = boyut;
+                    balon.style.animationDelay = (Math.random() * 12) + "s";
+                    balon.style.animationDuration = (7 + Math.random() * 5) + "s";
+                    katman.appendChild(balon);
+                }
+            }
+            else if (tip === "kale") {
+                for (let i = 0; i < 30; i++) {
+                    const yildiz = document.createElement("div");
+                    yildiz.className = "parca parca-yildiz";
+                    yildiz.style.left = (Math.random() * 100) + "%";
+                    yildiz.style.top = (Math.random() * 60) + "%";
+                    yildiz.style.animationDelay = (Math.random() * 4) + "s";
+                    yildiz.style.animationDuration = (2 + Math.random() * 3) + "s";
+                    katman.appendChild(yildiz);
+                }
+            }
+        }
+    </script>
+
 </body>
 </html>

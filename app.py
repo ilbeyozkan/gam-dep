@@ -534,11 +534,33 @@ def oyun_kaydet():
     yeni_rozetler = rozet_kontrol(ogrenci_id)
     yeni_seri = seri_guncelle(ogrenci_id)
 
+    # Bölüm adını ve toplam yıldızı al (büyük kutlama için)
+    bolum_bilgi = bl.ana_bolum_getir(ana_bolum)
+    bolum_adi = bolum_bilgi["ad"] if bolum_bilgi else f"Bölüm {ana_bolum}"
+
+    # Bölüm bitti mi?
+    biten_bolumler = biten_bolumleri_getir(ogrenci_id)
+    bolum_bitti = (ana_bolum in biten_bolumler)
+
+    # Toplam yıldız (bu bölümdeki)
+    conn = db.baglan()
+    imlec = conn.cursor()
+    imlec.execute("""
+        SELECT COALESCE(SUM(yildiz), 0) as toplam
+        FROM ilerleme
+        WHERE ogrenci_id = ? AND ana_bolum = ? AND tamamlandi = 1
+    """, (ogrenci_id, ana_bolum))
+    bolum_yildiz = imlec.fetchone()["toplam"]
+    conn.close()
+
     return {
         "mesaj": mesaj,
         "yildiz": yildiz,
         "yeni_rozetler": yeni_rozetler,
-        "seri_gun": yeni_seri
+        "seri_gun": yeni_seri,
+        "bolum_adi": bolum_adi,
+        "toplam_yildiz": bolum_yildiz,
+        "bolum_bitti": bolum_bitti,
     }, 200
 
 

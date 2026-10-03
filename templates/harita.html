@@ -72,8 +72,8 @@
             </div>
             <p class="rutbe">Rütbe: <strong>{{ rutbe }}</strong></p>
             {% if session.get('rol') == 'ogrenci' %}
-<p class="rutbe">Sınıf: <strong>{{ session.get('sinif', 1) }}. Sınıf</strong></p>
-{% endif %}
+            <p class="rutbe">Sınıf: <strong>{{ session.get('sinif', 1) }}. Sınıf</strong></p>
+            {% endif %}
             <div class="rozet-listesi">
                 {% for r in rozetler %}
                     <span class="rozet" title="{{ r.ad }}">{{ r.ikon }} {{ r.ad }}</span>
@@ -198,7 +198,6 @@
              style="--bolum-rengi: {{ bolum.renk }};">
 
             {% if bolum.bitti %}
-                <!-- TAMAMLANDI Şeridi (köşeden köşeye) -->
                 <div class="tamamlandi-serit tamamlandi-serit-buyuk">
                     <span class="tamamlandi-yazi tamamlandi-yazi-buyuk">TAMAMLANDI ✓</span>
                 </div>
@@ -225,6 +224,22 @@
         {% endfor %}
     </div>
 
+</div>
+
+<!-- ============================================ -->
+<!-- 🦊 MASKOT REHBER -->
+<!-- ============================================ -->
+<div class="maskot-alani" id="maskot-alani">
+    <div class="maskot-balon gizli" id="maskot-balon">
+        <div class="maskot-balon-icerik" id="maskot-mesaj">
+            Merhaba! Sana yol göstereceğim! 🦊
+        </div>
+        <div class="maskot-balon-ok"></div>
+    </div>
+
+    <div class="maskot" id="maskot" onclick="maskotKonus()">
+        <img src="{{ url_for('static', filename='img/maskot.svg') }}" alt="Maskot">
+    </div>
 </div>
 
 <!-- ============================================ -->
@@ -257,6 +272,9 @@
 </div>
 
 <script>
+    // ============================================
+    // AVATAR SİSTEMİ
+    // ============================================
     let seciliAvatar = "{{ avatar }}";
 
     function avatarModalAc() {
@@ -282,8 +300,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ avatar: seciliAvatar })
         })
-        .then(function(r) { return r.json(); })
-        .then(function(cevap) {
+        .then(function (r) { return r.json(); })
+        .then(function (cevap) {
             if (cevap.hata) {
                 alert("⚠️ " + cevap.hata);
                 return;
@@ -292,27 +310,134 @@
             const modal = document.getElementById("avatar-modal");
             modal.style.display = "none";
             const av = document.getElementById("avatar-goster");
-            av.classList.add("avatar-sevc");
-            setTimeout(function() {
+            av.classList.add("avatar-sevinc");
+            setTimeout(function () {
                 av.classList.remove("avatar-sevinc");
             }, 1500);
         })
-        .catch(function(h) {
+        .catch(function (h) {
             alert("Hata: " + h);
         });
     }
 
-    document.getElementById("avatar-modal").addEventListener("click", function(e) {
+    document.getElementById("avatar-modal").addEventListener("click", function (e) {
         if (e.target === this) {
             avatarModalKapat();
         }
     });
 
-    document.addEventListener("keydown", function(e) {
+    document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
             avatarModalKapat();
         }
     });
+
+    // ============================================
+    // 🦊 MASKOT REHBER SİSTEMİ
+    // ============================================
+
+    const maskotMesajlari = [
+        "Merhaba! Sana yol göstereceğim! 🦊",
+        "Bugün hangi oyunu oynayacaksın? 🎮",
+        "Yeni bir bölüm açıldı! Görmek ister misin? ✨",
+        "Yıldız toplamayı unutma! ⭐",
+        "Harika gidiyorsun! 💪",
+        "Okuma yolculuğun çok eğlenceli! 🚀",
+        "Rozet kazanmaya hazır mısın? 🏅",
+        "Bir mola ver, sonra devam et! ☕",
+        "Ben her zaman yanındayım! 🦊",
+        "Bugün hedefini tamamladın mı? 🎯",
+        "Ekipman odasında yeni şeyler var! 🎁",
+        "Sıralamada kaçıncı olduğunu gördün mü? 🏆",
+    ];
+
+    let maskotZamanlayici = null;
+    let maskotAktifMesajIndex = -1;
+
+    function maskotKonus(ozelMesaj) {
+        const balon = document.getElementById("maskot-balon");
+        const mesaj = document.getElementById("maskot-mesaj");
+        const maskot = document.getElementById("maskot");
+
+        if (!balon || !mesaj) return;
+
+        // 🎵 Hafif tık sesi (ses açıksa)
+        if (typeof sesButon === "function") {
+            sesButon();
+        }
+
+        let gosterilecek;
+        if (ozelMesaj) {
+            gosterilecek = ozelMesaj;
+        } else {
+            let yeniIndex;
+            do {
+                yeniIndex = Math.floor(Math.random() * maskotMesajlari.length);
+            } while (yeniIndex === maskotAktifMesajIndex && maskotMesajlari.length > 1);
+            maskotAktifMesajIndex = yeniIndex;
+            gosterilecek = maskotMesajlari[yeniIndex];
+        }
+
+        mesaj.textContent = gosterilecek;
+        balon.classList.remove("gizli");
+
+        maskot.classList.add("maskot-zipla");
+        setTimeout(function () {
+            maskot.classList.remove("maskot-zipla");
+        }, 1800);
+
+        clearTimeout(maskotZamanlayici);
+        maskotZamanlayici = setTimeout(function () {
+            balon.classList.add("gizli");
+        }, 6000);
+    }
+
+    // Sayfa açıldığında 1.5 saniye sonra ilk mesaj
+    document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+            maskotKonus();
+        }, 1500);
+    });
+
+    // Her 20 saniyede yeni mesaj
+    setInterval(function () {
+        if (document.visibilityState === "visible") {
+            maskotKonus();
+        }
+    }, 20000);
+
+    // Maskot dans ettir (harici)
+    function maskotDansEttir() {
+        const maskot = document.getElementById("maskot");
+        if (!maskot) return;
+        maskot.classList.add("maskot-dans");
+        maskotKonus("Tebrikler! Harikasın! 🎉");
+        setTimeout(function () {
+            maskot.classList.remove("maskot-dans");
+        }, 3000);
+    }
+
+    // Maskot üzülsün (harici)
+    function maskotUzulsun() {
+        const maskot = document.getElementById("maskot");
+        if (!maskot) return;
+        maskot.classList.add("maskot-uzgun");
+        maskotKonus("Olsun, tekrar deneyebilirsin! 💪");
+        setTimeout(function () {
+            maskot.classList.remove("maskot-uzgun");
+        }, 1500);
+    }
+
+    // Maskot parlasın (harici - ödül vs)
+    function maskotParlasin(mesaj) {
+        const maskot = document.getElementById("maskot");
+        if (!maskot) return;
+        maskot.classList.add("maskot-parla");
+        maskotKonus(mesaj || "Yeni bir şey kazandın! 🌟");
+        setTimeout(function () {
+            maskot.classList.remove("maskot-parla");
+        }, 2400);
+    }
 </script>
 
 {% endblock %}

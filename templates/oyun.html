@@ -36,13 +36,46 @@
     </div>
 </div>
 
+<!-- ============================================ -->
+<!-- 🎉 BÖLÜM TAMAMLAMA KUTLAMASI -->
+<!-- ============================================ -->
+<div class="buyuk-kutlama" id="buyuk-kutlama" style="display: none;">
+    <div class="kutlama-konfeti" id="kutlama-konfeti"></div>
+    <div class="kutlama-havai-fisek" id="kutlama-havai-fisek"></div>
+
+    <div class="kutlama-icerik">
+        <div class="kutlama-tac">🏆</div>
+        <h1 class="kutlama-baslik">TEBRİKLER!</h1>
+        <p class="kutlama-alt-baslik" id="kutlama-alt-baslik">Bir bölümü tamamladın!</p>
+
+        <div class="kutlama-rozet-alani" id="kutlama-rozet">
+            <div class="kutlama-rozet-emoji">🏅</div>
+            <div class="kutlama-rozet-ad" id="kutlama-rozet-ad">Başlangıç Kâşifi</div>
+        </div>
+
+        <div class="kutlama-maskot">
+            <img src="{{ url_for('static', filename='img/maskot.svg') }}" alt="Maskot">
+        </div>
+
+        <div class="kutlama-istatistik">
+            <div class="kutlama-stat">
+                <div class="kutlama-stat-emoji">⭐</div>
+                <div class="kutlama-stat-sayi" id="kutlama-yildiz">0</div>
+                <div class="kutlama-stat-etiket">Yıldız</div>
+            </div>
+        </div>
+
+        <a href="/harita" class="kutlama-buton">🗺️ Haritaya Dön</a>
+    </div>
+</div>
+
 <script id="oyun-verisi" type="application/json">
-{{ {"sorular": sorular, "bilgi": {"no": oyun.no, "ad": oyun.ad, "ana_no": ana_no, "ara_no": ara_no}} | tojson }}
+{{ {"sorular": sorular, "bilgi": {"no": oyun.no, "ad": oyun.ad, "ana_no": ana_no}} | tojson }}
 </script>
 
 <script>
 console.log(">>> OYUN SCRIPT BAŞLADI <<<");
-// Global ses durumu (cevap sesi bitmeden sonraki soruya geçmemek için)
+
 let sesDevamEdiyor = false;
 
 // ============================================
@@ -50,6 +83,10 @@ let sesDevamEdiyor = false;
 // ============================================
 function sesliOku(metin) {
     if (!("speechSynthesis" in window)) return;
+    try {
+        if (localStorage.getItem("seslerAcik") === "false") return;
+    } catch (e) {}
+
     window.speechSynthesis.cancel();
     sesDevamEdiyor = true;
     setTimeout(function () {
@@ -66,6 +103,10 @@ function sesliOku(metin) {
 
 function sesliOkuSirayla(metinler) {
     if (!("speechSynthesis" in window)) return;
+    try {
+        if (localStorage.getItem("seslerAcik") === "false") return;
+    } catch (e) {}
+
     window.speechSynthesis.cancel();
     sesDevamEdiyor = true;
     let index = 0;
@@ -128,6 +169,38 @@ function soylenenSayiyiBul(metin) {
 }
 
 // ============================================
+// ✨ DOĞRU CEVAP PATLAMASI (GLOBAL)
+// ============================================
+function dogruPatlamasiGoster(element) {
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
+    const merkezX = rect.left + rect.width / 2;
+    const merkezY = rect.top + rect.height / 2;
+
+    const emojiler = ["✨", "⭐", "🌟", "💫"];
+
+    for (let i = 0; i < 8; i++) {
+        const patlama = document.createElement("div");
+        patlama.className = "dogru-patlama";
+        patlama.textContent = emojiler[Math.floor(Math.random() * emojiler.length)];
+        patlama.style.left = merkezX + "px";
+        patlama.style.top = merkezY + "px";
+
+        const aci = (Math.PI * 2 / 8) * i + (Math.random() * 0.4 - 0.2);
+        const mesafe = 80 + Math.random() * 60;
+        const hedefX = Math.cos(aci) * mesafe;
+        const hedefY = Math.sin(aci) * mesafe;
+
+        patlama.style.setProperty("--hedef-x", hedefX + "px");
+        patlama.style.setProperty("--hedef-y", hedefY + "px");
+
+        document.body.appendChild(patlama);
+        setTimeout(function () { patlama.remove(); }, 1000);
+    }
+}
+
+// ============================================
 // OYUN MOTORU
 // ============================================
 document.addEventListener("DOMContentLoaded", function () {
@@ -159,9 +232,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     soruyuGoster();
 
-    // ----------------------------------------
-    // SORU GÖSTER
-    // ----------------------------------------
     function soruyuGoster() {
         const soru = durum.sorular[durum.aktifSoru];
         durum.cevaplandi = false;
@@ -171,48 +241,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const yuzde = (durum.aktifSoru / durum.sorular.length) * 100;
         document.getElementById("ilerleme-dolgu").style.width = yuzde + "%";
 
-        if (durum.bilgi.no === 1) {
-            oyun1Ciz(soru);
-        } else if (durum.bilgi.no === 2) {
-            oyun2Ciz(soru);
-        } else if (durum.bilgi.no === 9) {
-            oyun9Ciz(soru);
-        } else if (durum.bilgi.no === 3) {
-            oyun3Ciz(soru);
-        } else if (durum.bilgi.no === 4) {
-            oyun4Ciz(soru);
-        } else if (durum.bilgi.no === 7) {
-            oyun7Ciz(soru);
-        } else if (durum.bilgi.no === 8) {
-            oyun8Ciz(soru);
-        } else if (durum.bilgi.no === 10) {
-            oyun10Ciz(soru);
-        } else if (durum.bilgi.no === 11) {
-            oyun11Ciz(soru);
-        } else if (durum.bilgi.no === 12) {
-            oyun12Ciz(soru);
-        } else if (durum.bilgi.no === 13) {
-            oyun13Ciz(soru);
-        } else if (durum.bilgi.no === 14) {
-            oyun14Ciz(soru);
-        } else if (durum.bilgi.no === 15) {
-            oyun15Ciz(soru);
-        } else if (durum.bilgi.no === 16) {
-            oyun16Ciz(soru);
-        } else if (durum.bilgi.no === 5) {
-            oyun5Ciz(soru);
-        } else if (durum.bilgi.no === 6) {
-            oyun6Ciz(soru);
-        } else if (durum.bilgi.no === 17) {
-            oyun17Ciz(soru);
-        } else {
-            oyunAlani.innerHTML = "<p>Bu oyun henüz hazır değil.</p>";
-        }
+        if (durum.bilgi.no === 1) oyun1Ciz(soru);
+        else if (durum.bilgi.no === 2) oyun2Ciz(soru);
+        else if (durum.bilgi.no === 3) oyun3Ciz(soru);
+        else if (durum.bilgi.no === 4) oyun4Ciz(soru);
+        else if (durum.bilgi.no === 5) oyun5Ciz(soru);
+        else if (durum.bilgi.no === 6) oyun6Ciz(soru);
+        else if (durum.bilgi.no === 7) oyun7Ciz(soru);
+        else if (durum.bilgi.no === 8) oyun8Ciz(soru);
+        else if (durum.bilgi.no === 9) oyun9Ciz(soru);
+        else if (durum.bilgi.no === 10) oyun10Ciz(soru);
+        else if (durum.bilgi.no === 11) oyun11Ciz(soru);
+        else if (durum.bilgi.no === 12) oyun12Ciz(soru);
+        else if (durum.bilgi.no === 13) oyun13Ciz(soru);
+        else if (durum.bilgi.no === 14) oyun14Ciz(soru);
+        else if (durum.bilgi.no === 15) oyun15Ciz(soru);
+        else if (durum.bilgi.no === 16) oyun16Ciz(soru);
+        else if (durum.bilgi.no === 17) oyun17Ciz(soru);
+        else oyunAlani.innerHTML = "<p>Bu oyun henüz hazır değil.</p>";
     }
 
-    // ----------------------------------------
+    // ========================================
     // OYUN 1: SÖZCÜK SAYMA
-    // ----------------------------------------
+    // ========================================
     function oyun1Ciz(soru) {
         const secenekler = [2, 3, 4, 5];
         let html = '';
@@ -236,11 +287,11 @@ document.addEventListener("DOMContentLoaded", function () {
             sesliOkuSirayla(["Aşağıdaki cümlede kaç sözcük var?", soru.cumle]);
         }, 500);
     }
-        // ----------------------------------------
+
+    // ========================================
     // OYUN 2: SÖZCÜK ATMA
-    // ----------------------------------------
+    // ========================================
     function oyun2Ciz(soru) {
-        // Cümleyi sözcük sözcük ayır, çıkarılanı üstü çizili yap
         const kelimeler = soru.cumle.split(" ");
         let cumleHTML = '';
         for (let i = 0; i < kelimeler.length; i++) {
@@ -259,48 +310,32 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Cümle seçenekleri
         html += '<div class="cumle-secenek-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
             const s = soru.secenekler[i];
             html += '<button class="cumle-btn" data-cumle="' + s + '">' + s + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
-        // Butonlar
         const butonlar = document.querySelectorAll(".cumle-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 sozcukAtmaDegerlendir(this.dataset.cumle, soru);
             });
         }
 
-        // 🔊 Dinle
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                soru.cumle,
-                soru.cikarilan + " sözcüğü çıkarılınca hangi cümle kalır?"
-            ]);
+            sesliOkuSirayla([soru.cumle, soru.cikarilan + " sözcüğü çıkarılınca hangi cümle kalır?"]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            sesliOkuSirayla([
-                soru.cumle,
-                soru.cikarilan + " sözcüğü çıkarılınca hangi cümle kalır?"
-            ]);
+            sesliOkuSirayla([soru.cumle, soru.cikarilan + " sözcüğü çıkarılınca hangi cümle kalır?"]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // SÖZCÜK ATMA DEĞERLENDİRME
-    // ----------------------------------------
     function sozcukAtmaDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -310,34 +345,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.cumle === soru.kalan) btn.classList.add("dogru");
-            else if (btn.dataset.cumle === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.cumle === soru.kalan) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.cumle === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Kalan cümle:</span> ' +
-                             '<strong>' + soru.kalan + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Kalan cümle:</span> <strong>' + soru.kalan + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.kalan) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! Kalan cümle: " + soru.kalan;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! Kalan cümle " + soru.kalan);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.kalan;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.kalan);
         }
 
         setTimeout(ilerle, 2200);
     }
-        // ----------------------------------------
+
+    // ========================================
     // OYUN 3: SÖZCÜK BİRLEŞTİRME
-    // ----------------------------------------
+    // ========================================
     function oyun3Ciz(soru) {
-        // Karışık sözcükleri "chip" olarak göster
         let karisikHTML = '';
         for (let i = 0; i < soru.karisik.length; i++) {
             karisikHTML += '<span class="karisik-chip">' + soru.karisik[i] + '</span>';
@@ -349,45 +385,32 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Cümle seçenekleri
         html += '<div class="cumle-secenek-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
             const s = soru.secenekler[i];
             html += '<button class="cumle-btn" data-cumle="' + s + '">' + s + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".cumle-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 sozcukBirlestirmeDegerlendir(this.dataset.cumle, soru);
             });
         }
 
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                "Aşağıdaki sözcüklerden anlamlı bir cümle hangisidir?",
-                soru.karisik.join(", ")
-            ]);
+            sesliOkuSirayla(["Aşağıdaki sözcüklerden anlamlı bir cümle hangisidir?", soru.karisik.join(", ")]);
         });
 
         setTimeout(function () {
-            sesliOkuSirayla([
-                "Aşağıdaki sözcüklerden anlamlı bir cümle hangisidir?",
-                soru.karisik.join(", ")
-            ]);
+            sesliOkuSirayla(["Aşağıdaki sözcüklerden anlamlı bir cümle hangisidir?", soru.karisik.join(", ")]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // SÖZCÜK BİRLEŞTİRME DEĞERLENDİRME
-    // ----------------------------------------
     function sozcukBirlestirmeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -397,36 +420,36 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.cumle === soru.dogru) btn.classList.add("dogru");
-            else if (btn.dataset.cumle === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.cumle === soru.dogru) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.cumle === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Doğru cümle:</span> ' +
-                             '<strong>' + soru.dogru + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Doğru cümle:</span> <strong>' + soru.dogru + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.dogru) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.dogru;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! " + soru.dogru);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.dogru;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.dogru);
         }
 
         setTimeout(ilerle, 2200);
     }
-        // ----------------------------------------
-    // OYUN 4: SÖZCÜK AYIRMA (Çoklu Seçim)
-    // ----------------------------------------
+
+    // ========================================
+    // OYUN 4: SÖZCÜK AYIRMA
+    // ========================================
     function oyun4Ciz(soru) {
-        // Tüm seçenekleri karıştır: doğru kelimeler + tuzaklar
         const tumSecenekler = soru.dogru_kelimeler.concat(soru.tuzak);
-        // Karıştır
         for (let i = tumSecenekler.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [tumSecenekler[i], tumSecenekler[j]] = [tumSecenekler[j], tumSecenekler[i]];
@@ -438,33 +461,25 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Seçim chip'leri
         html += '<div class="secim-grid">';
         for (let i = 0; i < tumSecenekler.length; i++) {
-            const s = tumSecenekler[i];
-            html += '<button class="secim-chip" data-kelime="' + s + '">' + s + '</button>';
+            html += '<button class="secim-chip" data-kelime="' + tumSecenekler[i] + '">' + tumSecenekler[i] + '</button>';
         }
         html += '</div>';
-
-        // Onayla butonu
         html += '<div class="onayla-alani">';
         html += '  <button class="onayla-btn" id="btn-onayla" disabled>✓ Onayla</button>';
         html += '  <div class="secim-bilgi" id="secim-bilgi">Hiç seçim yapmadın</div>';
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
-        // Seçim chip'lerine tıklama (toggle)
         const chipButonlar = document.querySelectorAll(".secim-chip");
         const secimBilgi = document.getElementById("secim-bilgi");
         const onaylaBtn = document.getElementById("btn-onayla");
 
         for (let i = 0; i < chipButonlar.length; i++) {
-            const btn = chipButonlar[i];
-            btn.addEventListener("click", function () {
+            chipButonlar[i].addEventListener("click", function () {
                 this.classList.toggle("secili");
                 const secilenler = document.querySelectorAll(".secim-chip.secili");
                 secimBilgi.textContent = secilenler.length + " sözcük seçtin";
@@ -472,55 +487,36 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
-        // Onayla butonu
         onaylaBtn.addEventListener("click", function () {
             const secilenler = [];
             const hepsi = document.querySelectorAll(".secim-chip.secili");
-            for (let i = 0; i < hepsi.length; i++) {
-                secilenler.push(hepsi[i].dataset.kelime);
-            }
+            for (let i = 0; i < hepsi.length; i++) secilenler.push(hepsi[i].dataset.kelime);
             sozcukAyirmaDegerlendir(secilenler, soru);
         });
 
-        // 🔊 Dinle
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                "Aşağıdaki cümlede hangi sözcükler var?",
-                soru.cumle
-            ]);
+            sesliOkuSirayla(["Aşağıdaki cümlede hangi sözcükler var?", soru.cumle]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            sesliOkuSirayla([
-                "Aşağıdaki cümlede hangi sözcükler var?",
-                soru.cumle
-            ]);
+            sesliOkuSirayla(["Aşağıdaki cümlede hangi sözcükler var?", soru.cumle]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // SÖZCÜK AYIRMA DEĞERLENDİRME
-    // ----------------------------------------
     function sozcukAyirmaDegerlendir(secilenler, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
 
-        // Seçimleri karşılaştır (sırayı önemseme)
         const secilenSet = new Set(secilenler);
         const dogruSet = new Set(soru.dogru_kelimeler);
 
         let tamDogru = (secilenSet.size === dogruSet.size);
         if (tamDogru) {
             for (const k of secilenSet) {
-                if (!dogruSet.has(k)) {
-                    tamDogru = false;
-                    break;
-                }
+                if (!dogruSet.has(k)) { tamDogru = false; break; }
             }
         }
 
-        // Görsel: doğru seçilenler yeşil, yanlış seçilenler kırmızı
         const chipButonlar = document.querySelectorAll(".secim-chip");
         for (let i = 0; i < chipButonlar.length; i++) {
             const btn = chipButonlar[i];
@@ -528,137 +524,209 @@ document.addEventListener("DOMContentLoaded", function () {
             const k = btn.dataset.kelime;
             const secili = secilenSet.has(k);
             const dogruMu = dogruSet.has(k);
-
-            if (secili && dogruMu) {
-                btn.classList.remove("secili");
-                btn.classList.add("dogru");
-            } else if (secili && !dogruMu) {
-                btn.classList.remove("secili");
-                btn.classList.add("yanlis");
-            } else if (!secili && dogruMu) {
-                // Seçilmeyen doğru → kaçırdı (sarı)
-                btn.classList.add("kacirdi");
-            }
+            if (secili && dogruMu) { btn.classList.remove("secili"); btn.classList.add("dogru"); }
+            else if (secili && !dogruMu) { btn.classList.remove("secili"); btn.classList.add("yanlis"); }
+            else if (!secili && dogruMu) btn.classList.add("kacirdi");
         }
 
         const geriBildirim = document.getElementById("geri-bildirim");
         const gosterim = document.getElementById("fonem-gosterim");
 
-        gosterim.innerHTML = '<span class="hece-etiket">Doğru sözcükler:</span> ' +
-                             '<strong>' + soru.dogru_kelimeler.join(" • ") + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Doğru sözcükler:</span> <strong>' + soru.dogru_kelimeler.join(" • ") + '</strong>';
         gosterim.style.display = "block";
 
         if (tamDogru) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! Cümlede " + soru.dogru_kelimeler.length + " sözcük var.";
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! " + soru.dogru_kelimeler.join(" "));
         } else {
             geriBildirim.textContent = "❌ Eksik veya yanlış seçim. Doğru sözcükler: " + soru.dogru_kelimeler.join(", ");
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru sözcükler: " + soru.dogru_kelimeler.join(" "));
         }
 
         setTimeout(ilerle, 2600);
     }
-        // ----------------------------------------
-    // OYUN 9: FONEM AYIRT ETME
-    // ----------------------------------------
-    function oyun9Ciz(soru) {
-        // 3 sözcüğü yan yana kart olarak göster
-        let kartlarHTML = '';
-        for (let i = 0; i < soru.sozcukler.length; i++) {
-            const s = soru.sozcukler[i];
-            kartlarHTML += '<button class="ayirt-kart" data-kelime="' + s + '">';
-            kartlarHTML += '  <span class="ayirt-sozcuk">' + s + '</span>';
-            kartlarHTML += '</button>';
-        }
 
+    // ========================================
+    // OYUN 5: KAFİYE AYIRT ETME
+    // ========================================
+    function oyun5Ciz(soru) {
         let html = '';
-        html += '<p class="soru-yonerge">Hangisi <strong>diğerlerinden farklı sesle</strong> başlıyor?</p>';
-        html += '<div class="ayirt-grid">' + kartlarHTML + '</div>';
+        html += '<p class="soru-yonerge">Hangisi <strong>"' + soru.hedef + '"</strong> ile kafiyeli?</p>';
+        html += '<div class="soru-metin soru-metin-buyuk">' + soru.hedef + '</div>';
         html += '<div class="ses-butonlari">';
-        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Sözcükleri Dinle</button>';
+        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
+        html += '<div class="kafiye-grid">';
+        for (let i = 0; i < soru.secenekler.length; i++) {
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
+        }
+        html += '</div>';
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
-        const butonlar = document.querySelectorAll(".ayirt-kart");
+        const butonlar = document.querySelectorAll(".kafiye-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
-                fonemAyirtDegerlendir(this.dataset.kelime, soru);
+            butonlar[i].addEventListener("click", function () {
+                kafiyeDegerlendir(this.dataset.kelime, soru);
             });
         }
 
-        // 🔊 Dinle - 3 sözcüğü sırayla okur
         document.getElementById("btn-konus").addEventListener("click", function () {
-            const sira = ["Hangisi diğerlerinden farklı sesle başlıyor?"];
-            for (let i = 0; i < soru.sozcukler.length; i++) {
-                sira.push(soru.sozcukler[i]);
-            }
-            sesliOkuSirayla(sira);
+            sesliOkuSirayla(["Hangisi " + soru.hedef + " ile kafiyeli?", soru.secenekler.join(", ")]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            const sira = ["Hangisi diğerlerinden farklı sesle başlıyor?"];
-            for (let i = 0; i < soru.sozcukler.length; i++) {
-                sira.push(soru.sozcukler[i]);
-            }
-            sesliOkuSirayla(sira);
+            sesliOkuSirayla(["Hangisi " + soru.hedef + " ile kafiyeli?", soru.secenekler.join(", ")]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // FONEM AYIRT DEĞERLENDİRME
-    // ----------------------------------------
-    function fonemAyirtDegerlendir(verilen, soru) {
+    function kafiyeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
 
-        const butonlar = document.querySelectorAll(".ayirt-kart");
+        const butonlar = document.querySelectorAll(".kafiye-btn");
         const geriBildirim = document.getElementById("geri-bildirim");
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.farkli) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.dogru) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        // İlk sesleri göster
-        let ozetHTML = '<span class="hece-etiket">İlk sesler:</span> ';
-        const parcalar = [];
-        for (let i = 0; i < soru.sozcukler.length; i++) {
-            const s = soru.sozcukler[i];
-            const ses = (s === soru.farkli) ? soru.farkli_ses : soru.ortak_ses;
-            const sinif = (s === soru.farkli) ? "ayirt-farkli" : "ayirt-ortak";
-            parcalar.push('<span class="ayirt-ozet-chip ' + sinif + '">' + s + ' → ' + ses + '</span>');
-        }
-        gosterim.innerHTML = ozetHTML + parcalar.join(" ");
+        gosterim.innerHTML = '<span class="hece-etiket">Kafiye:</span> <strong>' + soru.hedef + ' — ' + soru.dogru + '</strong>';
         gosterim.style.display = "block";
 
-        if (verilen === soru.farkli) {
+        if (verilen === soru.dogru) {
             durum.dogruSayisi++;
-            geriBildirim.textContent = "✅ Doğru! " + soru.farkli + " (" + soru.farkli_ses + ") diğerlerinden farklı.";
+            geriBildirim.textContent = "✅ Doğru! " + soru.hedef + " - " + soru.dogru + " kafiyeli!";
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
-            sesliOku("Doğru! " + soru.farkli + " farklı sesle başlıyor.");
+            if (typeof sesDogru === "function") sesDogru();
+            sesliOku("Doğru! " + soru.hedef + " ve " + soru.dogru + " kafiyeli.");
         } else {
-            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.farkli;
+            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.dogru;
             geriBildirim.classList.add("yanlis");
-            sesliOku("Yanlış. Doğru cevap " + soru.farkli);
+            if (typeof sesYanlis === "function") sesYanlis();
+            sesliOku("Yanlış. Doğru cevap " + soru.dogru);
+        }
+
+        setTimeout(ilerle, 2200);
+    }
+
+    // ========================================
+    // OYUN 6: KAFİYE ÜRETME
+    // ========================================
+    function oyun6Ciz(soru) {
+        let html = '';
+        html += '<p class="soru-yonerge"><strong>"' + soru.hedef + '"</strong> ile kafiyeli olan <strong>TÜM</strong> sözcükleri seç.</p>';
+        html += '<div class="soru-metin soru-metin-buyuk">' + soru.hedef + '</div>';
+        html += '<div class="ses-butonlari">';
+        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Sözcükleri Dinle</button>';
+        html += '</div>';
+        html += '<div class="secim-grid">';
+        for (let i = 0; i < soru.secenekler.length; i++) {
+            html += '<button class="secim-chip" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
+        }
+        html += '</div>';
+        html += '<div class="onayla-alani">';
+        html += '  <button class="onayla-btn" id="btn-onayla" disabled>✓ Onayla</button>';
+        html += '  <div class="secim-bilgi" id="secim-bilgi">Hiç seçim yapmadın</div>';
+        html += '</div>';
+        html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
+        html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
+        oyunAlani.innerHTML = html;
+
+        const chipButonlar = document.querySelectorAll(".secim-chip");
+        const secimBilgi = document.getElementById("secim-bilgi");
+        const onaylaBtn = document.getElementById("btn-onayla");
+
+        for (let i = 0; i < chipButonlar.length; i++) {
+            chipButonlar[i].addEventListener("click", function () {
+                this.classList.toggle("secili");
+                const secilenler = document.querySelectorAll(".secim-chip.secili");
+                secimBilgi.textContent = secilenler.length + " sözcük seçtin";
+                onaylaBtn.disabled = (secilenler.length === 0);
+            });
+        }
+
+        onaylaBtn.addEventListener("click", function () {
+            const secilenler = [];
+            const hepsi = document.querySelectorAll(".secim-chip.secili");
+            for (let i = 0; i < hepsi.length; i++) secilenler.push(hepsi[i].dataset.kelime);
+            kafiyeUretDegerlendir(secilenler, soru);
+        });
+
+        document.getElementById("btn-konus").addEventListener("click", function () {
+            const sira = [soru.hedef + " ile kafiyeli olanları seç."];
+            for (let i = 0; i < soru.secenekler.length; i++) sira.push(soru.secenekler[i]);
+            sesliOkuSirayla(sira);
+        });
+
+        setTimeout(function () {
+            sesliOkuSirayla([soru.hedef + " ile kafiyeli olan tüm sözcükleri seç.", soru.hedef]);
+        }, 500);
+    }
+
+    function kafiyeUretDegerlendir(secilenler, soru) {
+        if (durum.cevaplandi) return;
+        durum.cevaplandi = true;
+
+        const secilenSet = new Set(secilenler);
+        const dogruSet = new Set(soru.dogrular);
+
+        let tamDogru = (secilenSet.size === dogruSet.size);
+        if (tamDogru) {
+            for (const k of secilenSet) {
+                if (!dogruSet.has(k)) { tamDogru = false; break; }
+            }
+        }
+
+        const chipButonlar = document.querySelectorAll(".secim-chip");
+        for (let i = 0; i < chipButonlar.length; i++) {
+            const btn = chipButonlar[i];
+            btn.disabled = true;
+            const k = btn.dataset.kelime;
+            const secili = secilenSet.has(k);
+            const dogruMu = dogruSet.has(k);
+            if (secili && dogruMu) { btn.classList.remove("secili"); btn.classList.add("dogru"); }
+            else if (secili && !dogruMu) { btn.classList.remove("secili"); btn.classList.add("yanlis"); }
+            else if (!secili && dogruMu) btn.classList.add("kacirdi");
+        }
+
+        const geriBildirim = document.getElementById("geri-bildirim");
+        const gosterim = document.getElementById("fonem-gosterim");
+
+        gosterim.innerHTML = '<span class="hece-etiket">Kafiyeli sözcükler:</span> <strong>' + soru.dogrular.join(" • ") + '</strong>';
+        gosterim.style.display = "block";
+
+        if (tamDogru) {
+            durum.dogruSayisi++;
+            geriBildirim.textContent = "✅ Doğru! " + soru.dogrular.length + " kafiyeli sözcük buldun.";
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
+            geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
+            sesliOku("Doğru! " + soru.dogrular.join(" "));
+        } else {
+            geriBildirim.textContent = "❌ Eksik veya yanlış seçim. Doğru sözcükler: " + soru.dogrular.join(", ");
+            geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
+            sesliOku("Yanlış. Doğru sözcükler " + soru.dogrular.join(" "));
         }
 
         setTimeout(ilerle, 2600);
     }
 
-    // ----------------------------------------
+    // ========================================
     // OYUN 7: HECE BÖLME
-    // ----------------------------------------
+    // ========================================
     function oyun7Ciz(soru) {
         const secenekler = [1, 2, 3, 4];
         let html = '';
@@ -683,9 +751,217 @@ document.addEventListener("DOMContentLoaded", function () {
             sesliOkuSirayla(["Aşağıdaki sözcükte kaç hece var?", soru.sozcuk]);
         }, 500);
     }
-        // ----------------------------------------
-    // OYUN 10: BAŞTAKİ FONEMİ BUL
-    // ----------------------------------------
+
+    function heceDegerlendir(verilen, soru) {
+        if (durum.cevaplandi) return;
+        durum.cevaplandi = true;
+        if (durum.dinliyor && tanima) { try { tanima.stop(); } catch (e) {} }
+
+        const butonlar = document.querySelectorAll(".cevap-btn");
+        const geriBildirim = document.getElementById("geri-bildirim");
+        const heceGosterim = document.getElementById("hece-gosterim");
+
+        for (let i = 0; i < butonlar.length; i++) {
+            butonlar[i].disabled = true;
+            const deger = parseInt(butonlar[i].dataset.cevap);
+            if (deger === soru.cevap) butonlar[i].classList.add("dogru");
+            else if (deger === verilen) butonlar[i].classList.add("yanlis");
+        }
+
+        const heceMetni = soru.heceler.join(" - ");
+        heceGosterim.innerHTML = '<span class="hece-etiket">Heceler:</span> <strong>' + heceMetni + '</strong>';
+        heceGosterim.style.display = "block";
+
+        if (verilen === soru.cevap) {
+            durum.dogruSayisi++;
+            geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " = " + heceMetni;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
+            geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
+            sesliOku("Doğru! " + soru.sozcuk + " " + soru.heceler.join(" "));
+        } else {
+            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.cevap;
+            geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
+            sesliOku("Yanlış. Doğru cevap " + soru.cevap + ". " + soru.sozcuk + " " + soru.heceler.join(" "));
+        }
+
+        setTimeout(ilerle, 2400);
+    }
+
+    // ========================================
+    // OYUN 8: HECE SİLME
+    // ========================================
+    function oyun8Ciz(soru) {
+        let hecelerHTML = '';
+        for (let i = 0; i < soru.heceler.length; i++) {
+            const hece = soru.heceler[i];
+            if (hece === soru.cikarilan) {
+                hecelerHTML += '<span class="hece-chip hece-cikarilan">' + hece + '</span>';
+            } else {
+                hecelerHTML += '<span class="hece-chip">' + hece + '</span>';
+            }
+            if (i < soru.heceler.length - 1) hecelerHTML += '<span class="hece-arti">-</span>';
+        }
+
+        let html = '';
+        html += '<p class="soru-yonerge">Sözcükten <strong>"' + soru.cikarilan + '"</strong> hecesi çıkarılınca ne kalır?</p>';
+        html += '<div class="soru-metin soru-metin-buyuk">' + soru.sozcuk + '</div>';
+        html += '<div class="hece-kutu">' + hecelerHTML + '</div>';
+        html += '<div class="ses-butonlari">';
+        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
+        html += '</div>';
+        html += '<div class="kafiye-grid">';
+        for (let i = 0; i < soru.secenekler.length; i++) {
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
+        }
+        html += '</div>';
+        html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
+        html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
+        oyunAlani.innerHTML = html;
+
+        const butonlar = document.querySelectorAll(".kafiye-btn");
+        for (let i = 0; i < butonlar.length; i++) {
+            butonlar[i].addEventListener("click", function () {
+                heceSilmeDegerlendir(this.dataset.kelime, soru);
+            });
+        }
+
+        document.getElementById("btn-konus").addEventListener("click", function () {
+            const sira = [soru.sozcuk];
+            sira.push(soru.heceler.join(", "));
+            sira.push(soru.cikarilan + " hecesi çıkarılınca ne kalır?");
+            sesliOkuSirayla(sira);
+        });
+
+        setTimeout(function () {
+            const sira = [soru.sozcuk];
+            sira.push(soru.heceler.join(", "));
+            sira.push(soru.cikarilan + " hecesi çıkarılınca ne kalır?");
+            sesliOkuSirayla(sira);
+        }, 500);
+    }
+
+    function heceSilmeDegerlendir(verilen, soru) {
+        if (durum.cevaplandi) return;
+        durum.cevaplandi = true;
+
+        const butonlar = document.querySelectorAll(".kafiye-btn");
+        const geriBildirim = document.getElementById("geri-bildirim");
+        const gosterim = document.getElementById("fonem-gosterim");
+
+        for (let i = 0; i < butonlar.length; i++) {
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.kalan) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
+        }
+
+        gosterim.innerHTML = '<span class="hece-etiket">Kalan:</span> <strong>' + soru.sozcuk + ' → ' + soru.kalan + '</strong>';
+        gosterim.style.display = "block";
+
+        if (verilen === soru.kalan) {
+            durum.dogruSayisi++;
+            geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " - " + soru.cikarilan + " = " + soru.kalan;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
+            geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
+            sesliOku("Doğru! Kalan " + soru.kalan);
+        } else {
+            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.kalan;
+            geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
+            sesliOku("Yanlış. Doğru cevap " + soru.kalan);
+        }
+
+        setTimeout(ilerle, 2400);
+    }
+
+    // ========================================
+    // OYUN 9: FONEM AYIRT ETME
+    // ========================================
+    function oyun9Ciz(soru) {
+        let kartlarHTML = '';
+        for (let i = 0; i < soru.sozcukler.length; i++) {
+            kartlarHTML += '<button class="ayirt-kart" data-kelime="' + soru.sozcukler[i] + '">';
+            kartlarHTML += '  <span class="ayirt-sozcuk">' + soru.sozcukler[i] + '</span>';
+            kartlarHTML += '</button>';
+        }
+
+        let html = '';
+        html += '<p class="soru-yonerge">Hangisi <strong>diğerlerinden farklı sesle</strong> başlıyor?</p>';
+        html += '<div class="ayirt-grid">' + kartlarHTML + '</div>';
+        html += '<div class="ses-butonlari">';
+        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Sözcükleri Dinle</button>';
+        html += '</div>';
+        html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
+        html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
+        oyunAlani.innerHTML = html;
+
+        const butonlar = document.querySelectorAll(".ayirt-kart");
+        for (let i = 0; i < butonlar.length; i++) {
+            butonlar[i].addEventListener("click", function () {
+                fonemAyirtDegerlendir(this.dataset.kelime, soru);
+            });
+        }
+
+        document.getElementById("btn-konus").addEventListener("click", function () {
+            const sira = ["Hangisi diğerlerinden farklı sesle başlıyor?"];
+            for (let i = 0; i < soru.sozcukler.length; i++) sira.push(soru.sozcukler[i]);
+            sesliOkuSirayla(sira);
+        });
+
+        setTimeout(function () {
+            const sira = ["Hangisi diğerlerinden farklı sesle başlıyor?"];
+            for (let i = 0; i < soru.sozcukler.length; i++) sira.push(soru.sozcukler[i]);
+            sesliOkuSirayla(sira);
+        }, 500);
+    }
+
+    function fonemAyirtDegerlendir(verilen, soru) {
+        if (durum.cevaplandi) return;
+        durum.cevaplandi = true;
+
+        const butonlar = document.querySelectorAll(".ayirt-kart");
+        const geriBildirim = document.getElementById("geri-bildirim");
+        const gosterim = document.getElementById("fonem-gosterim");
+
+        for (let i = 0; i < butonlar.length; i++) {
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.farkli) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
+        }
+
+        let ozetHTML = '<span class="hece-etiket">İlk sesler:</span> ';
+        const parcalar = [];
+        for (let i = 0; i < soru.sozcukler.length; i++) {
+            const s = soru.sozcukler[i];
+            const ses = (s === soru.farkli) ? soru.farkli_ses : soru.ortak_ses;
+            const sinif = (s === soru.farkli) ? "ayirt-farkli" : "ayirt-ortak";
+            parcalar.push('<span class="ayirt-ozet-chip ' + sinif + '">' + s + ' → ' + ses + '</span>');
+        }
+        gosterim.innerHTML = ozetHTML + parcalar.join(" ");
+        gosterim.style.display = "block";
+
+        if (verilen === soru.farkli) {
+            durum.dogruSayisi++;
+            geriBildirim.textContent = "✅ Doğru! " + soru.farkli + " (" + soru.farkli_ses + ") diğerlerinden farklı.";
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
+            geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
+            sesliOku("Doğru! " + soru.farkli + " farklı sesle başlıyor.");
+        } else {
+            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.farkli;
+            geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
+            sesliOku("Yanlış. Doğru cevap " + soru.farkli);
+        }
+
+        setTimeout(ilerle, 2600);
+    }
+
+    // ========================================
+    // OYUN 10: BAŞTAKİ FONEM
+    // ========================================
     function oyun10Ciz(soru) {
         let html = '';
         html += '<p class="soru-yonerge">Aşağıdaki sözcüğün <strong>ilk sesi</strong> hangisi?</p>';
@@ -693,48 +969,68 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Harf butonları (büyük grid)
         html += '<div class="harf-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const h = soru.secenekler[i];
-            html += '<button class="harf-btn" data-harf="' + h + '">' + h + '</button>';
+            html += '<button class="harf-btn" data-harf="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
-        // Cevap sonrası gösterim
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
-        // Harf butonlarına tıklama
         const butonlar = document.querySelectorAll(".harf-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 fonemDegerlendir(this.dataset.harf, soru);
             });
         }
 
-        // 🔊 Dinle
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                "Aşağıdaki sözcüğün ilk sesi hangisi?",
-                soru.sozcuk
-            ]);
+            sesliOkuSirayla(["Aşağıdaki sözcüğün ilk sesi hangisi?", soru.sozcuk]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            sesliOkuSirayla([
-                "Aşağıdaki sözcüğün ilk sesi hangisi?",
-                soru.sozcuk
-            ]);
+            sesliOkuSirayla(["Aşağıdaki sözcüğün ilk sesi hangisi?", soru.sozcuk]);
         }, 500);
     }
-        // ----------------------------------------
-    // OYUN 11: SONDAKİ FONEMİ BUL
-    // ----------------------------------------
+
+    function fonemDegerlendir(verilen, soru) {
+        if (durum.cevaplandi) return;
+        durum.cevaplandi = true;
+
+        const butonlar = document.querySelectorAll(".harf-btn");
+        const geriBildirim = document.getElementById("geri-bildirim");
+        const fonemGosterim = document.getElementById("fonem-gosterim");
+
+        for (let i = 0; i < butonlar.length; i++) {
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.harf === soru.ilk_ses) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.harf === verilen) butonlar[i].classList.add("yanlis");
+        }
+
+        fonemGosterim.innerHTML = '<span class="hece-etiket">İlk ses:</span> <strong>' + soru.sozcuk + ' → ' + soru.ilk_ses + '</strong>';
+        fonemGosterim.style.display = "block";
+
+        if (verilen === soru.ilk_ses) {
+            durum.dogruSayisi++;
+            geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " → " + soru.ilk_ses;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
+            geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
+            sesliOku("Doğru! " + soru.sozcuk + " sözcüğünün ilk sesi " + soru.ilk_ses);
+        } else {
+            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.ilk_ses;
+            geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
+            sesliOku("Yanlış. Doğru cevap " + soru.ilk_ses);
+        }
+
+        setTimeout(ilerle, 2200);
+    }
+
+    // ========================================
+    // OYUN 11: SONDAKİ FONEM
+    // ========================================
     function oyun11Ciz(soru) {
         let html = '';
         html += '<p class="soru-yonerge">Aşağıdaki sözcüğün <strong>son sesi</strong> hangisi?</p>';
@@ -742,44 +1038,31 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
         html += '<div class="harf-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const h = soru.secenekler[i];
-            html += '<button class="harf-btn" data-harf="' + h + '">' + h + '</button>';
+            html += '<button class="harf-btn" data-harf="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".harf-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 sonFonemDegerlendir(this.dataset.harf, soru);
             });
         }
 
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                "Aşağıdaki sözcüğün son sesi hangisi?",
-                soru.sozcuk
-            ]);
+            sesliOkuSirayla(["Aşağıdaki sözcüğün son sesi hangisi?", soru.sozcuk]);
         });
 
         setTimeout(function () {
-            sesliOkuSirayla([
-                "Aşağıdaki sözcüğün son sesi hangisi?",
-                soru.sozcuk
-            ]);
+            sesliOkuSirayla(["Aşağıdaki sözcüğün son sesi hangisi?", soru.sozcuk]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // SON FONEM DEĞERLENDİRME
-    // ----------------------------------------
     function sonFonemDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -789,40 +1072,39 @@ document.addEventListener("DOMContentLoaded", function () {
         const fonemGosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.harf === soru.son_ses) btn.classList.add("dogru");
-            else if (btn.dataset.harf === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.harf === soru.son_ses) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.harf === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        fonemGosterim.innerHTML = '<span class="hece-etiket">Son ses:</span> ' +
-                                  '<strong>' + soru.sozcuk + ' → ' + soru.son_ses + '</strong>';
+        fonemGosterim.innerHTML = '<span class="hece-etiket">Son ses:</span> <strong>' + soru.sozcuk + ' → ' + soru.son_ses + '</strong>';
         fonemGosterim.style.display = "block";
 
         if (verilen === soru.son_ses) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " → " + soru.son_ses;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! " + soru.sozcuk + " sözcüğünün son sesi " + soru.son_ses);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.son_ses;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.son_ses);
         }
 
         setTimeout(ilerle, 2200);
     }
-        // ----------------------------------------
+
+    // ========================================
     // OYUN 12: FONEM BİRLEŞTİRME
-    // ----------------------------------------
+    // ========================================
     function oyun12Ciz(soru) {
-        // Sesleri chip olarak göster, aralarına "+" koy
         let seslerHTML = '';
         for (let i = 0; i < soru.sesler.length; i++) {
             seslerHTML += '<span class="fonem-chip">' + soru.sesler[i] + '</span>';
-            if (i < soru.sesler.length - 1) {
-                seslerHTML += '<span class="fonem-arti">+</span>';
-            }
+            if (i < soru.sesler.length - 1) seslerHTML += '<span class="fonem-arti">+</span>';
         }
 
         let html = '';
@@ -831,51 +1113,35 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Sesleri Dinle</button>';
         html += '</div>';
-
-        // Sözcük seçenekleri
         html += '<div class="kafiye-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".kafiye-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 fonemBirlestirmeDegerlendir(this.dataset.kelime, soru);
             });
         }
 
-        // 🔊 Sesleri dinle - önce yavaş yavaş sesler, sonra sözcük
         document.getElementById("btn-konus").addEventListener("click", function () {
-            const sira = [];
-            sira.push("Bu sesler birleşince hangi sözcük oluşur?");
-            for (let i = 0; i < soru.sesler.length; i++) {
-                sira.push(soru.sesler[i]);
-            }
+            const sira = ["Bu sesler birleşince hangi sözcük oluşur?"];
+            for (let i = 0; i < soru.sesler.length; i++) sira.push(soru.sesler[i]);
             sesliOkuSirayla(sira);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            const sira = [];
-            sira.push("Bu sesler birleşince hangi sözcük oluşur?");
-            for (let i = 0; i < soru.sesler.length; i++) {
-                sira.push(soru.sesler[i]);
-            }
+            const sira = ["Bu sesler birleşince hangi sözcük oluşur?"];
+            for (let i = 0; i < soru.sesler.length; i++) sira.push(soru.sesler[i]);
             sesliOkuSirayla(sira);
         }, 500);
     }
 
-    // ----------------------------------------
-    // FONEM BİRLEŞTİRME DEĞERLENDİRME
-    // ----------------------------------------
     function fonemBirlestirmeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -885,40 +1151,39 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.dogru) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.dogru) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Sözcük:</span> ' +
-                             '<strong>' + soru.sesler.join(" - ") + ' → ' + soru.dogru + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Sözcük:</span> <strong>' + soru.sesler.join(" - ") + ' → ' + soru.dogru + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.dogru) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.sesler.join(" - ") + " → " + soru.dogru;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! " + soru.dogru);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.dogru;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.dogru);
         }
 
         setTimeout(ilerle, 2400);
     }
-        // ----------------------------------------
+
+    // ========================================
     // OYUN 13: FONEM BÖLME
-    // ----------------------------------------
+    // ========================================
     function oyun13Ciz(soru) {
-        // Sözcüğün harflerini belirgin chip'ler olarak göster
         let harfHTML = '';
         for (let i = 0; i < soru.harfler.length; i++) {
             harfHTML += '<span class="bolme-chip">' + soru.harfler[i] + '</span>';
-            if (i < soru.harfler.length - 1) {
-                harfHTML += '<span class="bolme-nokta">•</span>';
-            }
+            if (i < soru.harfler.length - 1) harfHTML += '<span class="bolme-nokta">•</span>';
         }
 
         let html = '';
@@ -928,49 +1193,35 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Sesleri Dinle</button>';
         html += '</div>';
-
-        // Seçenekler
         html += '<div class="kafiye-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".kafiye-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 fonemBolmeDegerlendir(this.dataset.kelime, soru);
             });
         }
 
-        // 🔊 Dinle: sözcüğü söyle, sonra harfleri tek tek söyle
         document.getElementById("btn-konus").addEventListener("click", function () {
             const sira = [soru.sozcuk];
-            for (let i = 0; i < soru.harfler.length; i++) {
-                sira.push(soru.harfler[i]);
-            }
+            for (let i = 0; i < soru.harfler.length; i++) sira.push(soru.harfler[i]);
             sesliOkuSirayla(sira);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
             const sira = [soru.sozcuk];
-            for (let i = 0; i < soru.harfler.length; i++) {
-                sira.push(soru.harfler[i]);
-            }
+            for (let i = 0; i < soru.harfler.length; i++) sira.push(soru.harfler[i]);
             sesliOkuSirayla(sira);
         }, 500);
     }
 
-    // ----------------------------------------
-    // FONEM BÖLME DEĞERLENDİRME
-    // ----------------------------------------
     function fonemBolmeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -980,40 +1231,40 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.dogru) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.dogru) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Sesler:</span> ' +
-                             '<strong>' + soru.harfler.join(" • ") + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Sesler:</span> <strong>' + soru.harfler.join(" • ") + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.dogru) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " = " + soru.harfler.join(" - ");
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! " + soru.sozcuk + " sözcüğü " + soru.harfler.join(" ") + " seslerinden oluşur.");
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.dogru;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.dogru);
         }
 
         setTimeout(ilerle, 2600);
     }
-        // ----------------------------------------
+
+    // ========================================
     // OYUN 14: FONEM SİLME
-    // ----------------------------------------
+    // ========================================
     function oyun14Ciz(soru) {
-        // Sözcüğün harflerini renkli chip'ler olarak göster
         let harflerHTML = '';
         const harfler = soru.sozcuk.split("");
         for (let i = 0; i < harfler.length; i++) {
             const h = harfler[i];
             if (h === soru.cikarilan) {
-                // Çıkarılan ses: kırmızı, üstü çizili
                 harflerHTML += '<span class="fonem-sil-chip fonem-sil-cikarilan">' + h + '</span>';
             } else {
                 harflerHTML += '<span class="fonem-sil-chip">' + h + '</span>';
@@ -1027,47 +1278,31 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Cevap seçenekleri
         html += '<div class="kafiye-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".kafiye-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 fonemSilmeDegerlendir(this.dataset.kelime, soru);
             });
         }
 
-        // 🔊 Dinle: önce sözcük, sonra soru
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                soru.sozcuk,
-                soru.cikarilan + " sesi çıkarılınca ne kalır?"
-            ]);
+            sesliOkuSirayla([soru.sozcuk, soru.cikarilan + " sesi çıkarılınca ne kalır?"]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            sesliOkuSirayla([
-                soru.sozcuk,
-                soru.cikarilan + " sesi çıkarılınca ne kalır?"
-            ]);
+            sesliOkuSirayla([soru.sozcuk, soru.cikarilan + " sesi çıkarılınca ne kalır?"]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // FONEM SİLME DEĞERLENDİRME
-    // ----------------------------------------
     function fonemSilmeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -1077,55 +1312,45 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.kalan) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.kalan) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Kalan:</span> ' +
-                             '<strong>' + soru.sozcuk + ' → ' + soru.kalan + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Kalan:</span> <strong>' + soru.sozcuk + ' → ' + soru.kalan + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.kalan) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " - " + soru.cikarilan + " = " + soru.kalan;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! Kalan " + soru.kalan);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.kalan;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.kalan);
         }
 
         setTimeout(ilerle, 2400);
     }
-        // ----------------------------------------
-    // OYUN 15: FONEM EKLEME
-    // ----------------------------------------
-    function oyun15Ciz(soru) {
-        // Kaynak sözcüğün harflerini chip olarak göster (yeşil)
-        // + eklenen ses chip'i (sarı, kesikli çerçeve)
-        // + ok işareti (baştan ise ←, sondan ise →)
-        let gorsel = '';
 
+    // ========================================
+    // OYUN 15: FONEM EKLEME
+    // ========================================
+    function oyun15Ciz(soru) {
+        let gorsel = '';
         const harfler = soru.sozcuk.split("");
         const eklenenChip = '<span class="ekle-chip ekle-yeni">' + soru.eklenen + '</span>';
 
         if (soru.konum === "baştan") {
-            // Eklenen + OK + Kaynak
-            gorsel += eklenenChip;
-            gorsel += '<span class="ekle-ok">+</span>';
-            for (let i = 0; i < harfler.length; i++) {
-                gorsel += '<span class="ekle-chip">' + harfler[i] + '</span>';
-            }
+            gorsel += eklenenChip + '<span class="ekle-ok">+</span>';
+            for (let i = 0; i < harfler.length; i++) gorsel += '<span class="ekle-chip">' + harfler[i] + '</span>';
         } else {
-            // Kaynak + OK + Eklenen
-            for (let i = 0; i < harfler.length; i++) {
-                gorsel += '<span class="ekle-chip">' + harfler[i] + '</span>';
-            }
-            gorsel += '<span class="ekle-ok">+</span>';
-            gorsel += eklenenChip;
+            for (let i = 0; i < harfler.length; i++) gorsel += '<span class="ekle-chip">' + harfler[i] + '</span>';
+            gorsel += '<span class="ekle-ok">+</span>' + eklenenChip;
         }
 
         let html = '';
@@ -1135,47 +1360,31 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Cevap seçenekleri
         html += '<div class="kafiye-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".kafiye-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 fonemEklemeDegerlendir(this.dataset.kelime, soru);
             });
         }
 
-        // 🔊 Dinle
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                soru.sozcuk,
-                soru.konum + " " + soru.eklenen + " sesi eklenince hangi sözcük oluşur?"
-            ]);
+            sesliOkuSirayla([soru.sozcuk, soru.konum + " " + soru.eklenen + " sesi eklenince hangi sözcük oluşur?"]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            sesliOkuSirayla([
-                soru.sozcuk,
-                soru.konum + " " + soru.eklenen + " sesi eklenince hangi sözcük oluşur?"
-            ]);
+            sesliOkuSirayla([soru.sozcuk, soru.konum + " " + soru.eklenen + " sesi eklenince hangi sözcük oluşur?"]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // FONEM EKLEME DEĞERLENDİRME
-    // ----------------------------------------
     function fonemEklemeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -1185,35 +1394,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.yeni) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.yeni) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Yeni sözcük:</span> ' +
-                             '<strong>' + soru.sozcuk + ' + ' + soru.eklenen + ' = ' + soru.yeni + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Yeni sözcük:</span> <strong>' + soru.sozcuk + ' + ' + soru.eklenen + ' = ' + soru.yeni + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.yeni) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " + " + soru.eklenen + " = " + soru.yeni;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! Yeni sözcük " + soru.yeni);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.yeni;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.yeni);
         }
 
         setTimeout(ilerle, 2400);
     }
-        // ----------------------------------------
+
+    // ========================================
     // OYUN 16: FONEM DEĞİŞTİRME
-    // ----------------------------------------
+    // ========================================
     function oyun16Ciz(soru) {
-        // Sözcüğün harflerini chip olarak göster
-        // Değiştirilecek olan kırmızı üstü çizili, yerine geçen sarı yanıp söner
         const harfler = soru.sozcuk.split("");
         let gorsel = '';
 
@@ -1223,25 +1432,16 @@ document.addEventListener("DOMContentLoaded", function () {
                                (soru.konum === "sondan" && i === harfler.length - 1);
 
             if (konumdaki && h === soru.eski) {
-                // Eski ses: kırmızı, üstü çizili + altında yeşil "yeni" ok
                 gorsel += '<div class="degistir-paket">';
-                gorsel += '  <div class="degistir-ust">';
-                gorsel += '    <span class="degistir-chip degistir-eski">' + soru.eski + '</span>';
-                gorsel += '  </div>';
+                gorsel += '  <div class="degistir-ust"><span class="degistir-chip degistir-eski">' + soru.eski + '</span></div>';
                 gorsel += '  <div class="degistir-ok">⬇</div>';
-                gorsel += '  <div class="degistir-alt">';
-                gorsel += '    <span class="degistir-chip degistir-yeni">' + soru.yeni + '</span>';
-                gorsel += '  </div>';
+                gorsel += '  <div class="degistir-alt"><span class="degistir-chip degistir-yeni">' + soru.yeni + '</span></div>';
                 gorsel += '</div>';
             } else {
                 gorsel += '<div class="degistir-paket">';
-                gorsel += '  <div class="degistir-ust">';
-                gorsel += '    <span class="degistir-chip">' + h + '</span>';
-                gorsel += '  </div>';
+                gorsel += '  <div class="degistir-ust"><span class="degistir-chip">' + h + '</span></div>';
                 gorsel += '  <div class="degistir-ok" style="visibility:hidden;">⬇</div>';
-                gorsel += '  <div class="degistir-alt">';
-                gorsel += '    <span class="degistir-chip degistir-bos">' + h + '</span>';
-                gorsel += '  </div>';
+                gorsel += '  <div class="degistir-alt"><span class="degistir-chip degistir-bos">' + h + '</span></div>';
                 gorsel += '</div>';
             }
         }
@@ -1253,47 +1453,31 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="ses-butonlari">';
         html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
         html += '</div>';
-
-        // Cevap seçenekleri
         html += '<div class="kafiye-grid">';
         for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
+            html += '<button class="kafiye-btn" data-kelime="' + soru.secenekler[i] + '">' + soru.secenekler[i] + '</button>';
         }
         html += '</div>';
-
         html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
         const butonlar = document.querySelectorAll(".kafiye-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 fonemDegistirmeDegerlendir(this.dataset.kelime, soru);
             });
         }
 
-        // 🔊 Dinle
         document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                soru.sozcuk,
-                soru.eski + " sesi " + soru.yeni + " ile değişirse ne olur?"
-            ]);
+            sesliOkuSirayla([soru.sozcuk, soru.eski + " sesi " + soru.yeni + " ile değişirse ne olur?"]);
         });
 
-        // Otomatik sesli oku
         setTimeout(function () {
-            sesliOkuSirayla([
-                soru.sozcuk,
-                soru.eski + " sesi " + soru.yeni + " ile değişirse ne olur?"
-            ]);
+            sesliOkuSirayla([soru.sozcuk, soru.eski + " sesi " + soru.yeni + " ile değişirse ne olur?"]);
         }, 500);
     }
 
-    // ----------------------------------------
-    // FONEM DEĞİŞTİRME DEĞERLENDİRME
-    // ----------------------------------------
     function fonemDegistirmeDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -1303,244 +1487,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.sonuc) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.sonuc) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Yeni sözcük:</span> ' +
-                             '<strong>' + soru.sozcuk + ' → ' + soru.sonuc + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Yeni sözcük:</span> <strong>' + soru.sozcuk + ' → ' + soru.sonuc + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.sonuc) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.eski + " → " + soru.yeni + " = " + soru.sonuc;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! Yeni sözcük " + soru.sonuc);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.sonuc;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.sonuc);
         }
 
         setTimeout(ilerle, 2400);
     }
-        // ----------------------------------------
-    // OYUN 5: KAFİYE AYIRT ETME
-    // ----------------------------------------
-    function oyun5Ciz(soru) {
-        let html = '';
-        html += '<p class="soru-yonerge">Hangisi <strong>"' + soru.hedef + '"</strong> ile kafiyeli?</p>';
-        html += '<div class="soru-metin soru-metin-buyuk">' + soru.hedef + '</div>';
-        html += '<div class="ses-butonlari">';
-        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
-        html += '</div>';
 
-        // Kafiye seçenekleri (büyük, yazılı butonlar)
-        html += '<div class="kafiye-grid">';
-        for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
-        }
-        html += '</div>';
-
-        html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
-        html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
-        oyunAlani.innerHTML = html;
-
-        const butonlar = document.querySelectorAll(".kafiye-btn");
-        for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
-                kafiyeDegerlendir(this.dataset.kelime, soru);
-            });
-        }
-
-        document.getElementById("btn-konus").addEventListener("click", function () {
-            sesliOkuSirayla([
-                "Hangisi " + soru.hedef + " ile kafiyeli?",
-                soru.secenekler.join(", ")
-            ]);
-        });
-
-        setTimeout(function () {
-            sesliOkuSirayla([
-                "Hangisi " + soru.hedef + " ile kafiyeli?",
-                soru.secenekler.join(", ")
-            ]);
-        }, 500);
-    }
-
-    // ----------------------------------------
-    // KAFİYE DEĞERLENDİRME
-    // ----------------------------------------
-    function kafiyeDegerlendir(verilen, soru) {
-        if (durum.cevaplandi) return;
-        durum.cevaplandi = true;
-
-        const butonlar = document.querySelectorAll(".kafiye-btn");
-        const geriBildirim = document.getElementById("geri-bildirim");
-        const gosterim = document.getElementById("fonem-gosterim");
-
-        for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.dogru) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
-        }
-
-        gosterim.innerHTML = '<span class="hece-etiket">Kafiye:</span> ' +
-                             '<strong>' + soru.hedef + ' — ' + soru.dogru + '</strong>';
-        gosterim.style.display = "block";
-
-        if (verilen === soru.dogru) {
-            durum.dogruSayisi++;
-            geriBildirim.textContent = "✅ Doğru! " + soru.hedef + " - " + soru.dogru + " kafiyeli!";
-            geriBildirim.classList.add("dogru");
-            sesliOku("Doğru! " + soru.hedef + " ve " + soru.dogru + " kafiyeli.");
-        } else {
-            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.dogru;
-            geriBildirim.classList.add("yanlis");
-            sesliOku("Yanlış. Doğru cevap " + soru.dogru);
-        }
-
-        setTimeout(ilerle, 2200);
-    }
-        // ----------------------------------------
-    // OYUN 6: KAFİYE ÜRETME (Çoklu Seçim)
-    // ----------------------------------------
-    function oyun6Ciz(soru) {
-        let html = '';
-        html += '<p class="soru-yonerge"><strong>"' + soru.hedef + '"</strong> ile kafiyeli olan <strong>TÜM</strong> sözcükleri seç.</p>';
-        html += '<div class="soru-metin soru-metin-buyuk">' + soru.hedef + '</div>';
-        html += '<div class="ses-butonlari">';
-        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Sözcükleri Dinle</button>';
-        html += '</div>';
-
-        // Seçim chip'leri
-        html += '<div class="secim-grid">';
-        for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="secim-chip" data-kelime="' + s + '">' + s + '</button>';
-        }
-        html += '</div>';
-
-        // Onayla butonu
-        html += '<div class="onayla-alani">';
-        html += '  <button class="onayla-btn" id="btn-onayla" disabled>✓ Onayla</button>';
-        html += '  <div class="secim-bilgi" id="secim-bilgi">Hiç seçim yapmadın</div>';
-        html += '</div>';
-
-        html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
-        html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
-        oyunAlani.innerHTML = html;
-
-        const chipButonlar = document.querySelectorAll(".secim-chip");
-        const secimBilgi = document.getElementById("secim-bilgi");
-        const onaylaBtn = document.getElementById("btn-onayla");
-
-        for (let i = 0; i < chipButonlar.length; i++) {
-            const btn = chipButonlar[i];
-            btn.addEventListener("click", function () {
-                this.classList.toggle("secili");
-                const secilenler = document.querySelectorAll(".secim-chip.secili");
-                secimBilgi.textContent = secilenler.length + " sözcük seçtin";
-                onaylaBtn.disabled = (secilenler.length === 0);
-            });
-        }
-
-        onaylaBtn.addEventListener("click", function () {
-            const secilenler = [];
-            const hepsi = document.querySelectorAll(".secim-chip.secili");
-            for (let i = 0; i < hepsi.length; i++) {
-                secilenler.push(hepsi[i].dataset.kelime);
-            }
-            kafiyeUretDegerlendir(secilenler, soru);
-        });
-
-        // 🔊 Dinle
-        document.getElementById("btn-konus").addEventListener("click", function () {
-            const sira = [soru.hedef + " ile kafiyeli olanları seç."];
-            for (let i = 0; i < soru.secenekler.length; i++) {
-                sira.push(soru.secenekler[i]);
-            }
-            sesliOkuSirayla(sira);
-        });
-
-        // Otomatik sesli oku
-        setTimeout(function () {
-            sesliOkuSirayla([
-                soru.hedef + " ile kafiyeli olan tüm sözcükleri seç.",
-                soru.hedef
-            ]);
-        }, 500);
-    }
-
-    // ----------------------------------------
-    // KAFİYE ÜRETME DEĞERLENDİRME
-    // ----------------------------------------
-    function kafiyeUretDegerlendir(secilenler, soru) {
-        if (durum.cevaplandi) return;
-        durum.cevaplandi = true;
-
-        const secilenSet = new Set(secilenler);
-        const dogruSet = new Set(soru.dogrular);
-
-        let tamDogru = (secilenSet.size === dogruSet.size);
-        if (tamDogru) {
-            for (const k of secilenSet) {
-                if (!dogruSet.has(k)) {
-                    tamDogru = false;
-                    break;
-                }
-            }
-        }
-
-        const chipButonlar = document.querySelectorAll(".secim-chip");
-        for (let i = 0; i < chipButonlar.length; i++) {
-            const btn = chipButonlar[i];
-            btn.disabled = true;
-            const k = btn.dataset.kelime;
-            const secili = secilenSet.has(k);
-            const dogruMu = dogruSet.has(k);
-
-            if (secili && dogruMu) {
-                btn.classList.remove("secili");
-                btn.classList.add("dogru");
-            } else if (secili && !dogruMu) {
-                btn.classList.remove("secili");
-                btn.classList.add("yanlis");
-            } else if (!secili && dogruMu) {
-                btn.classList.add("kacirdi");
-            }
-        }
-
-        const geriBildirim = document.getElementById("geri-bildirim");
-        const gosterim = document.getElementById("fonem-gosterim");
-
-        gosterim.innerHTML = '<span class="hece-etiket">Kafiyeli sözcükler:</span> ' +
-                             '<strong>' + soru.dogrular.join(" • ") + '</strong>';
-        gosterim.style.display = "block";
-
-        if (tamDogru) {
-            durum.dogruSayisi++;
-            geriBildirim.textContent = "✅ Doğru! " + soru.dogrular.length + " kafiyeli sözcük buldun.";
-            geriBildirim.classList.add("dogru");
-            sesliOku("Doğru! " + soru.dogrular.join(" "));
-        } else {
-            geriBildirim.textContent = "❌ Eksik veya yanlış seçim. Doğru sözcükler: " + soru.dogrular.join(", ");
-            geriBildirim.classList.add("yanlis");
-            sesliOku("Yanlış. Doğru sözcükler " + soru.dogrular.join(" "));
-        }
-
-        setTimeout(ilerle, 2600);
-    }
-        // ----------------------------------------
-    // OYUN 17: OTOMATİK OKUMA (Flash Kart)
-    // ----------------------------------------
+    // ========================================
+    // OYUN 17: OTOMATİK OKUMA
+    // ========================================
     function oyun17Ciz(soru) {
-        // Ekranı hazırla: önce flash kart, sonra seçenekler
         let html = '';
         html += '<p class="soru-yonerge">Sözcüğe dikkatlice bak! Kısa süre sonra kaybolacak. ⚡</p>';
         html += '<div class="flash-alani" id="flash-alani">';
@@ -1549,7 +1524,6 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="secenek-alani" id="secenek-alani" style="display:none;">';
         html += '  <p class="soru-yonerge" style="margin-top:0;">Hangi sözcüğü gördün?</p>';
         html += '  <div class="kafiye-grid">';
-        // Seçenekleri karıştır
         const karisik = soru.secenekler.slice();
         for (let i = karisik.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -1564,42 +1538,28 @@ document.addEventListener("DOMContentLoaded", function () {
         html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
         oyunAlani.innerHTML = html;
 
-        // Flash süresi (milisaniye) — zorluk ilerledikçe azalır
-        // İlk sorularda 2000ms, son sorularda 1200ms
         const ilerleme = durum.aktifSoru / durum.sorular.length;
         const flashSuresi = Math.max(1200, 2000 - (ilerleme * 800));
 
-        console.log("Flash süresi:", flashSuresi, "ms");
-
-        // Flash animasyonu başlat
         const flashKart = document.getElementById("flash-kart");
         flashKart.classList.add("flash-aktif");
 
-
-        // Belirlenen süre sonra kartı gizle, seçenekleri göster
         setTimeout(function () {
             flashKart.classList.add("flash-kaybol");
             setTimeout(function () {
                 document.getElementById("flash-alani").style.display = "none";
                 document.getElementById("secenek-alani").style.display = "block";
 
-                // Seçenek butonlarına tıklama
                 const butonlar = document.querySelectorAll(".kafiye-btn");
                 for (let i = 0; i < butonlar.length; i++) {
-                    const btn = butonlar[i];
-                    btn.addEventListener("click", function () {
+                    butonlar[i].addEventListener("click", function () {
                         otomatikOkumaDegerlendir(this.dataset.kelime, soru);
                     });
                 }
-
-                
             }, 400);
         }, flashSuresi);
     }
 
-    // ----------------------------------------
-    // OTOMATİK OKUMA DEĞERLENDİRME
-    // ----------------------------------------
     function otomatikOkumaDegerlendir(verilen, soru) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
@@ -1609,70 +1569,34 @@ document.addEventListener("DOMContentLoaded", function () {
         const gosterim = document.getElementById("fonem-gosterim");
 
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.sozcuk) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            if (butonlar[i].dataset.kelime === soru.sozcuk) butonlar[i].classList.add("dogru");
+            else if (butonlar[i].dataset.kelime === verilen) butonlar[i].classList.add("yanlis");
         }
 
-        gosterim.innerHTML = '<span class="hece-etiket">Doğru sözcük:</span> ' +
-                             '<strong>' + soru.sozcuk + '</strong>';
+        gosterim.innerHTML = '<span class="hece-etiket">Doğru sözcük:</span> <strong>' + soru.sozcuk + '</strong>';
         gosterim.style.display = "block";
 
         if (verilen === soru.sozcuk) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk;
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru! " + soru.sozcuk);
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.sozcuk;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + soru.sozcuk);
         }
 
         setTimeout(ilerle, 2200);
     }
 
-    // ----------------------------------------
-    // FONEM DEĞERLENDİRME
-    // ----------------------------------------
-    function fonemDegerlendir(verilen, soru) {
-        if (durum.cevaplandi) return;
-        durum.cevaplandi = true;
-
-        const butonlar = document.querySelectorAll(".harf-btn");
-        const geriBildirim = document.getElementById("geri-bildirim");
-        const fonemGosterim = document.getElementById("fonem-gosterim");
-
-        for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.harf === soru.ilk_ses) btn.classList.add("dogru");
-            else if (btn.dataset.harf === verilen) btn.classList.add("yanlis");
-        }
-
-        // Sözcüğün ilk sesini göster
-        fonemGosterim.innerHTML = '<span class="hece-etiket">İlk ses:</span> ' +
-                                  '<strong>' + soru.sozcuk + ' → ' + soru.ilk_ses + '</strong>';
-        fonemGosterim.style.display = "block";
-
-        if (verilen === soru.ilk_ses) {
-            durum.dogruSayisi++;
-            geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " → " + soru.ilk_ses;
-            geriBildirim.classList.add("dogru");
-            sesliOku("Doğru! " + soru.sozcuk + " sözcüğünün ilk sesi " + soru.ilk_ses);
-        } else {
-            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.ilk_ses;
-            geriBildirim.classList.add("yanlis");
-            sesliOku("Yanlış. Doğru cevap " + soru.ilk_ses);
-        }
-
-        setTimeout(ilerle, 2200);
-    }
-
-    // ----------------------------------------
-    // YARDIMCI HTML PARÇALARI
-    // ----------------------------------------
+    // ========================================
+    // YARDIMCI FONKSİYONLAR
+    // ========================================
     function sesButonlariHTML() {
         let h = '';
         h += '<div class="ses-butonlari">';
@@ -1686,8 +1610,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function cevapGridHTML(secenekler) {
         let h = '<div class="cevap-grid">';
         for (let i = 0; i < secenekler.length; i++) {
-            const s = secenekler[i];
-            h += '<button class="cevap-btn" data-cevap="' + s + '">' + s + '</button>';
+            h += '<button class="cevap-btn" data-cevap="' + secenekler[i] + '">' + secenekler[i] + '</button>';
         }
         h += '</div>';
         return h;
@@ -1696,8 +1619,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function baglaButonlar(dogru, cb) {
         const butonlar = document.querySelectorAll(".cevap-btn");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
+            butonlar[i].addEventListener("click", function () {
                 cb(parseInt(this.dataset.cevap));
             });
         }
@@ -1715,196 +1637,53 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ----------------------------------------
-    // CEVAP DEĞERLENDİRME - OYUN 1
-    // ----------------------------------------
     function cevapDegerlendir(verilen, dogru, birim) {
         if (durum.cevaplandi) return;
         durum.cevaplandi = true;
-        if (durum.dinliyor && tanima) {
-            try { tanima.stop(); } catch (e) {}
-        }
+        if (durum.dinliyor && tanima) { try { tanima.stop(); } catch (e) {} }
 
         const butonlar = document.querySelectorAll(".cevap-btn");
         const geriBildirim = document.getElementById("geri-bildirim");
         for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            const deger = parseInt(btn.dataset.cevap);
-            if (deger === dogru) btn.classList.add("dogru");
-            else if (deger === verilen) btn.classList.add("yanlis");
+            butonlar[i].disabled = true;
+            const deger = parseInt(butonlar[i].dataset.cevap);
+            if (deger === dogru) butonlar[i].classList.add("dogru");
+            else if (deger === verilen) butonlar[i].classList.add("yanlis");
         }
 
         if (verilen === dogru) {
             durum.dogruSayisi++;
             geriBildirim.textContent = "✅ Doğru! Harika!";
+            dogruPatlamasiGoster(document.querySelector(".dogru"));
             geriBildirim.classList.add("dogru");
+            if (typeof sesDogru === "function") sesDogru();
             sesliOku("Doğru!");
         } else {
             geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + dogru;
             geriBildirim.classList.add("yanlis");
+            if (typeof sesYanlis === "function") sesYanlis();
             sesliOku("Yanlış. Doğru cevap " + dogru);
         }
 
         ilerle();
     }
 
-    // ----------------------------------------
-    // CEVAP DEĞERLENDİRME - OYUN 7
-    // ----------------------------------------
-    function heceDegerlendir(verilen, soru) {
-        if (durum.cevaplandi) return;
-        durum.cevaplandi = true;
-        if (durum.dinliyor && tanima) {
-            try { tanima.stop(); } catch (e) {}
-        }
-
-        const butonlar = document.querySelectorAll(".cevap-btn");
-        const geriBildirim = document.getElementById("geri-bildirim");
-        const heceGosterim = document.getElementById("hece-gosterim");
-
-        for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            const deger = parseInt(btn.dataset.cevap);
-            if (deger === soru.cevap) btn.classList.add("dogru");
-            else if (deger === verilen) btn.classList.add("yanlis");
-        }
-
-        const heceMetni = soru.heceler.join(" - ");
-        heceGosterim.innerHTML = '<span class="hece-etiket">Heceler:</span> <strong>' + heceMetni + '</strong>';
-        heceGosterim.style.display = "block";
-
-        if (verilen === soru.cevap) {
-            durum.dogruSayisi++;
-            geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " = " + heceMetni;
-            geriBildirim.classList.add("dogru");
-            sesliOku("Doğru! " + soru.sozcuk + " " + soru.heceler.join(" "));
-        } else {
-            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.cevap;
-            geriBildirim.classList.add("yanlis");
-            sesliOku("Yanlış. Doğru cevap " + soru.cevap + ". " + soru.sozcuk + " " + soru.heceler.join(" "));
-        }
-
-        setTimeout(ilerle, 2400);
-    }
-
     function ilerle() {
-    // Eğer ses hâlâ devam ediyorsa bekle
-    if (sesDevamEdiyor) {
-        setTimeout(ilerle, 200);
-        return;
-    }
-    durum.aktifSoru++;
-    if (durum.aktifSoru < durum.sorular.length) {
-        soruyuGoster();
-    } else {
-        oyunuBitir();
-    }
-    }
-        // ----------------------------------------
-    // OYUN 8: HECE SİLME
-    // ----------------------------------------
-    function oyun8Ciz(soru) {
-        // Sözcüğün hecelerini renkli chip'ler olarak göster
-        let hecelerHTML = '';
-        for (let i = 0; i < soru.heceler.length; i++) {
-            const hece = soru.heceler[i];
-            if (hece === soru.cikarilan) {
-                // Çıkarılan hece: kırmızı, üstü çizili
-                hecelerHTML += '<span class="hece-chip hece-cikarilan">' + hece + '</span>';
-            } else {
-                hecelerHTML += '<span class="hece-chip">' + hece + '</span>';
-            }
-            if (i < soru.heceler.length - 1) {
-                hecelerHTML += '<span class="hece-arti">-</span>';
-            }
+        if (sesDevamEdiyor) {
+            setTimeout(ilerle, 200);
+            return;
         }
-
-        let html = '';
-        html += '<p class="soru-yonerge">Sözcükten <strong>"' + soru.cikarilan + '"</strong> hecesi çıkarılınca ne kalır?</p>';
-        html += '<div class="soru-metin soru-metin-buyuk">' + soru.sozcuk + '</div>';
-        html += '<div class="hece-kutu">' + hecelerHTML + '</div>';
-        html += '<div class="ses-butonlari">';
-        html += '  <button class="ses-btn konus-btn" id="btn-konus">🔊 Tekrar Dinle</button>';
-        html += '</div>';
-
-        // Cevap seçenekleri
-        html += '<div class="kafiye-grid">';
-        for (let i = 0; i < soru.secenekler.length; i++) {
-            const s = soru.secenekler[i];
-            html += '<button class="kafiye-btn" data-kelime="' + s + '">' + s + '</button>';
-        }
-        html += '</div>';
-
-        html += '<div class="fonem-gosterim" id="fonem-gosterim" style="display:none;"></div>';
-        html += '<div class="geri-bildirim" id="geri-bildirim"></div>';
-        oyunAlani.innerHTML = html;
-
-        const butonlar = document.querySelectorAll(".kafiye-btn");
-        for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.addEventListener("click", function () {
-                heceSilmeDegerlendir(this.dataset.kelime, soru);
-            });
-        }
-
-        // 🔊 Dinle: önce sözcük, sonra heceler, sonra soru
-        document.getElementById("btn-konus").addEventListener("click", function () {
-            const sira = [soru.sozcuk];
-            sira.push(soru.heceler.join(", "));
-            sira.push(soru.cikarilan + " hecesi çıkarılınca ne kalır?");
-            sesliOkuSirayla(sira);
-        });
-
-        // Otomatik sesli oku
-        setTimeout(function () {
-            const sira = [soru.sozcuk];
-            sira.push(soru.heceler.join(", "));
-            sira.push(soru.cikarilan + " hecesi çıkarılınca ne kalır?");
-            sesliOkuSirayla(sira);
-        }, 500);
-    }
-
-    // ----------------------------------------
-    // HECE SİLME DEĞERLENDİRME
-    // ----------------------------------------
-    function heceSilmeDegerlendir(verilen, soru) {
-        if (durum.cevaplandi) return;
-        durum.cevaplandi = true;
-
-        const butonlar = document.querySelectorAll(".kafiye-btn");
-        const geriBildirim = document.getElementById("geri-bildirim");
-        const gosterim = document.getElementById("fonem-gosterim");
-
-        for (let i = 0; i < butonlar.length; i++) {
-            const btn = butonlar[i];
-            btn.disabled = true;
-            if (btn.dataset.kelime === soru.kalan) btn.classList.add("dogru");
-            else if (btn.dataset.kelime === verilen) btn.classList.add("yanlis");
-        }
-
-        gosterim.innerHTML = '<span class="hece-etiket">Kalan:</span> ' +
-                             '<strong>' + soru.sozcuk + ' → ' + soru.kalan + '</strong>';
-        gosterim.style.display = "block";
-
-        if (verilen === soru.kalan) {
-            durum.dogruSayisi++;
-            geriBildirim.textContent = "✅ Doğru! " + soru.sozcuk + " - " + soru.cikarilan + " = " + soru.kalan;
-            geriBildirim.classList.add("dogru");
-            sesliOku("Doğru! Kalan " + soru.kalan);
+        durum.aktifSoru++;
+        if (durum.aktifSoru < durum.sorular.length) {
+            soruyuGoster();
         } else {
-            geriBildirim.textContent = "❌ Yanlış. Doğru cevap: " + soru.kalan;
-            geriBildirim.classList.add("yanlis");
-            sesliOku("Yanlış. Doğru cevap " + soru.kalan);
+            oyunuBitir();
         }
-
-        setTimeout(ilerle, 2400);
     }
 
-    // ----------------------------------------
+    // ========================================
     // MİKROFON
-    // ----------------------------------------
+    // ========================================
     function mikrofonDinle(dogruCevap) {
         if (durum.cevaplandi || durum.dinliyor) return;
 
@@ -1923,13 +1702,9 @@ document.addEventListener("DOMContentLoaded", function () {
             let soylenenMetin = "";
 
             for (let i = 0; i < sonuclar.length; i++) {
-                const metin = sonuclar[i].transcript;
-                soylenenMetin = metin;
-                const sayi = soylenenSayiyiBul(metin);
-                if (sayi !== null) {
-                    bulunanSayi = sayi;
-                    break;
-                }
+                soylenenMetin = sonuclar[i].transcript;
+                const sayi = soylenenSayiyiBul(soylenenMetin);
+                if (sayi !== null) { bulunanSayi = sayi; break; }
             }
 
             durum.dinliyor = false;
@@ -1971,10 +1746,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ----------------------------------------
+    // ========================================
     // OYUN BİTİR
-    // ----------------------------------------
-        function oyunuBitir() {
+    // ========================================
+    function oyunuBitir() {
         const toplam = durum.sorular.length;
         const dogru = durum.dogruSayisi;
         let yildiz = 0;
@@ -1995,7 +1770,6 @@ document.addEventListener("DOMContentLoaded", function () {
         else if (yildiz === 1) { emoji.textContent = "👍"; baslik.textContent = "Güzel Deneme!"; mesaj.textContent = toplam + " sorudan " + dogru + "'ini doğru bildin."; }
         else { emoji.textContent = "💪"; baslik.textContent = "Tekrar Dene!"; mesaj.textContent = toplam + " sorudan " + dogru + "'ini doğru bildin."; }
 
-        // Yıldızları oluştur
         const yildizAlani = document.getElementById("sonuc-yildizlar");
         let yildizHtml = "";
         for (let i = 0; i < 3; i++) {
@@ -2003,29 +1777,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         yildizAlani.innerHTML = yildizHtml;
 
-        // ⭐ YENİ: Yıldız kazanınca animasyonlar
         if (yildiz > 0) {
-            // 1) Uçan "+X ⭐" yazısı
-            setTimeout(function () {
-                ucanYildizGoster(yildiz);
-            }, 400);
-
-            // 2) Yıldız patlaması
-            setTimeout(function () {
-                yildizPatlamasi();
-            }, 700);
-
-            // 3) Konfeti yağmuru
-            setTimeout(function () {
-                konfetiYagdir();
-            }, 500);
-
-            // 4) Zafer sesi (opak, sessizce)
+            if (typeof sesYildiz === "function") setTimeout(sesYildiz, 200);
+            setTimeout(function () { ucanYildizGoster(yildiz); }, 400);
+            setTimeout(function () { yildizPatlamasi(); }, 700);
+            if (typeof sesKonfeti === "function") setTimeout(sesKonfeti, 400);
+            setTimeout(function () { konfetiYagdir(); }, 500);
             setTimeout(function () {
                 sesliOku(baslik.textContent + " " + mesaj.textContent + " " + yildiz + " yıldız kazandın!");
             }, 1200);
         } else {
-            // Yıldız yoksa sadece sonucu oku
             setTimeout(function () {
                 sesliOku(baslik.textContent + " " + mesaj.textContent);
             }, 600);
@@ -2034,14 +1795,13 @@ document.addEventListener("DOMContentLoaded", function () {
         sonucuKaydet(yildiz, dogru, toplam);
     }
 
-    // ----------------------------------------
+    // ========================================
     // SUNUCUYA KAYDET
-    // ----------------------------------------
+    // ========================================
     function sonucuKaydet(yildiz, dogru, toplam) {
         if (yildiz === 0) return;
         const veri = {
             ana_bolum: durum.bilgi.ana_no,
-            ara_bolum: durum.bilgi.ara_no,
             oyun_no: durum.bilgi.no,
             yildiz: yildiz,
             dogru: dogru,
@@ -2054,16 +1814,23 @@ document.addEventListener("DOMContentLoaded", function () {
         })
             .then(function (r) { return r.json(); })
             .then(function (c) {
+                console.log("Kaydedildi:", c);
                 if (c.yeni_rozetler && c.yeni_rozetler.length > 0) {
                     rozetKutlamasiGoster(c.yeni_rozetler);
+                    if (c.bolum_bitti) {
+                        setTimeout(function () {
+                            buyukKutlamaGoster(
+                                c.yeni_rozetler[0],
+                                c.toplam_yildiz || yildiz,
+                                c.bolum_adi || "Bu bölüm"
+                            );
+                        }, 3000);
+                    }
                 }
             })
             .catch(function (h) { console.error("Kayıt hatası:", h); });
     }
 
-    // ----------------------------------------
-    // ROZET POPUP
-    // ----------------------------------------
     function rozetKutlamasiGoster(rozetler) {
         setTimeout(function () {
             sesliOku("Tebrikler! Yeni bir rozet kazandın!");
@@ -2087,14 +1854,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
 // ============================================
-// KONFETİ + YILDIZ PATLAMASI EFEKTİ
+// KONFETİ + YILDIZ PATLAMASI (GLOBAL)
 // ============================================
 
 function konfetiYagdir() {
-    // 60 adet konfeti oluştur
     const renkler = ["#ffd54f", "#f39c12", "#e74c3c", "#9b59b6", "#3498db", "#27ae60", "#1abc9c"];
-
     for (let i = 0; i < 60; i++) {
         const konfeti = document.createElement("div");
         konfeti.className = "konfeti-parca";
@@ -2106,27 +1872,19 @@ function konfetiYagdir() {
         konfeti.style.height = (6 + Math.random() * 8) + "px";
         konfeti.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
         konfeti.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-
         document.body.appendChild(konfeti);
-
-        // 4 saniye sonra temizle
-        setTimeout(function () {
-            konfeti.remove();
-        }, 4000);
+        setTimeout(function () { konfeti.remove(); }, 4000);
     }
 }
 
 function yildizPatlamasi() {
-    // Sonuç ekranındaki yıldızların konumlarında patlama efekti
     const yildizlar = document.querySelectorAll(".sonuc-yildizlar .kazanildi");
     if (!yildizlar.length) return;
-
     yildizlar.forEach(function (yildiz, index) {
         setTimeout(function () {
             const patlama = document.createElement("div");
             patlama.className = "yildiz-patlama";
             patlama.textContent = "✨";
-
             const rect = yildiz.getBoundingClientRect();
             patlama.style.position = "fixed";
             patlama.style.left = rect.left + "px";
@@ -2135,24 +1893,17 @@ function yildizPatlamasi() {
             patlama.style.zIndex = "9999";
             patlama.style.pointerEvents = "none";
             patlama.style.animation = "yildizPatlamaAnim 0.8s ease forwards";
-
             document.body.appendChild(patlama);
-
-            setTimeout(function () {
-                patlama.remove();
-            }, 1000);
+            setTimeout(function () { patlama.remove(); }, 1000);
         }, index * 250);
     });
 }
 
 function ucanYildizGoster(miktar) {
     if (miktar <= 0) return;
-
     const balon = document.createElement("div");
     balon.className = "ucan-yildiz";
     balon.innerHTML = "+" + miktar + " ⭐";
-
-    // Ekranın ortasına konumlandır
     balon.style.position = "fixed";
     balon.style.left = "50%";
     balon.style.top = "40%";
@@ -2164,12 +1915,96 @@ function ucanYildizGoster(miktar) {
     balon.style.zIndex = "9999";
     balon.style.pointerEvents = "none";
     balon.style.animation = "ucanYildizAnim 2.5s ease forwards";
-
     document.body.appendChild(balon);
+    setTimeout(function () { balon.remove(); }, 3000);
+}
+
+// ============================================
+// 🎉 BÜYÜK KUTLAMA FONKSİYONLARI
+// ============================================
+
+function buyukKutlamaGoster(rozetAdi, yildizSayisi, bolumAdi) {
+    const kutlama = document.getElementById("buyuk-kutlama");
+    if (!kutlama) return;
+
+    if (typeof sesZafer === "function") sesZafer();
+    if (typeof sesKutlama === "function") setTimeout(sesKutlama, 800);
+
+    document.getElementById("kutlama-rozet-ad").textContent = rozetAdi;
+    document.getElementById("kutlama-yildiz").textContent = yildizSayisi;
+    document.getElementById("kutlama-alt-baslik").textContent = bolumAdi + " tamamlandı!";
+
+    kutlama.style.display = "flex";
+
+    kutlamaKonfetiYagdir();
+
+    setTimeout(function () { havaiFisekPatlat(); }, 300);
+    setTimeout(function () { havaiFisekPatlat(); }, 800);
+    setTimeout(function () { havaiFisekPatlat(); }, 1400);
 
     setTimeout(function () {
-        balon.remove();
-    }, 3000);
+        sesliOku("Tebrikler! " + bolumAdi + " bölümünü tamamladın. " + rozetAdi + " rozetini kazandın!");
+    }, 2000);
+}
+
+function kutlamaKonfetiYagdir() {
+    const konteyner = document.getElementById("kutlama-konfeti");
+    if (!konteyner) return;
+
+    const renkler = ["#FFD54F", "#F39C12", "#E74C3C", "#9B59B6", "#3498DB", "#27AE60", "#1ABC9C", "#FF6B6B"];
+    const emojiler = ["🎊", "🎉", "✨", "⭐", "🌟", "💫"];
+
+    for (let i = 0; i < 100; i++) {
+        const konfeti = document.createElement("div");
+        konfeti.className = "kutlama-konfeti-parca";
+
+        if (Math.random() < 0.3) {
+            konfeti.textContent = emojiler[Math.floor(Math.random() * emojiler.length)];
+            konfeti.style.fontSize = (18 + Math.random() * 20) + "px";
+            konfeti.style.background = "transparent";
+        } else {
+            konfeti.style.backgroundColor = renkler[Math.floor(Math.random() * renkler.length)];
+            konfeti.style.width = (8 + Math.random() * 10) + "px";
+            konfeti.style.height = (8 + Math.random() * 10) + "px";
+            konfeti.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+        }
+
+        konfeti.style.left = Math.random() * 100 + "%";
+        konfeti.style.animationDelay = (Math.random() * 2) + "s";
+        konfeti.style.animationDuration = (3 + Math.random() * 2) + "s";
+
+        konteyner.appendChild(konfeti);
+        setTimeout(function () { konfeti.remove(); }, 6000);
+    }
+}
+
+function havaiFisekPatlat() {
+    const konteyner = document.getElementById("kutlama-havai-fisek");
+    if (!konteyner) return;
+
+    const x = 20 + Math.random() * 60;
+    const y = 10 + Math.random() * 30;
+
+    const fisek = document.createElement("div");
+    fisek.className = "havai-fisek";
+    fisek.style.left = x + "%";
+    fisek.style.top = y + "%";
+
+    const renkler = ["#FFD54F", "#E74C3C", "#9B59B6", "#3498DB", "#27AE60", "#F39C12"];
+    const renk = renkler[Math.floor(Math.random() * renkler.length)];
+    fisek.style.color = renk;
+
+    for (let i = 0; i < 12; i++) {
+        const kivilcim = document.createElement("div");
+        kivilcim.className = "kivilcim";
+        const aci = (360 / 12) * i;
+        kivilcim.style.transform = "rotate(" + aci + "deg)";
+        kivilcim.style.backgroundColor = renk;
+        fisek.appendChild(kivilcim);
+    }
+
+    konteyner.appendChild(fisek);
+    setTimeout(function () { fisek.remove(); }, 2000);
 }
 </script>
 
