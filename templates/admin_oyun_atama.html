@@ -46,6 +46,28 @@
                 </select>
             </div>
 
+            <div class="form-alan">
+                <label>Hangi Sınıflar İçin? (En az 1 seç)</label>
+                <div class="sinif-checkboxlar">
+                    <label class="sinif-checkbox">
+                        <input type="checkbox" name="siniflar" value="1" checked>
+                        <span>1. Sınıf</span>
+                    </label>
+                    <label class="sinif-checkbox">
+                        <input type="checkbox" name="siniflar" value="2" checked>
+                        <span>2. Sınıf</span>
+                    </label>
+                    <label class="sinif-checkbox">
+                        <input type="checkbox" name="siniflar" value="3" checked>
+                        <span>3. Sınıf</span>
+                    </label>
+                    <label class="sinif-checkbox">
+                        <input type="checkbox" name="siniflar" value="4" checked>
+                        <span>4. Sınıf</span>
+                    </label>
+                </div>
+            </div>
+
             <button type="submit" class="ekle-btn">+ Bu Bölüme Ekle</button>
         </form>
     </div>
@@ -64,6 +86,12 @@
                 <div>
                     <div class="atama-oyun-ad">{{ a.oyun_ad }}</div>
                     <div class="atama-oyun-no">Oyun No: {{ a.oyun_no }}</div>
+                    <div class="atama-siniflar">
+                        {% set sinif_listesi = a.siniflar.split(',') %}
+                        {% for s in sinif_listesi %}
+                            <span class="mini-sinif-etiket">{{ s }}. Sınıf</span>
+                        {% endfor %}
+                    </div>
                     {% if a.ozel_icerik_var %}
                         <div class="atama-ozel-bilgi">⭐ Özel içerik atanmış</div>
                     {% else %}

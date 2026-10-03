@@ -84,6 +84,21 @@
                 </div>
             </div>
 
+            <div class="form-satir">
+                <div class="form-alan">
+                    <label>Sınıf (Sadece öğrenci için)</label>
+                    <select name="sinif">
+                        <option value="1">1. Sınıf</option>
+                        <option value="2">2. Sınıf</option>
+                        <option value="3">3. Sınıf</option>
+                        <option value="4">4. Sınıf</option>
+                    </select>
+                </div>
+                <div class="form-alan">
+                    <!-- boş alan -->
+                </div>
+            </div>
+
             <button type="submit" class="ekle-btn">+ Kullanıcı Ekle</button>
         </form>
     </div>
@@ -99,6 +114,7 @@
                     <th>Ad Soyad</th>
                     <th>Kullanıcı Adı</th>
                     <th>Rol</th>
+                    <th>Sınıf</th>
                     <th>Kayıt Tarihi</th>
                     <th>İşlemler</th>
                 </tr>
@@ -122,6 +138,13 @@
                             {% endif %}
                         </span>
                     </td>
+                    <td>
+                        {% if k.rol == 'ogrenci' %}
+                            <span class="sinif-etiket">{{ k.sinif }}. Sınıf</span>
+                        {% else %}
+                            <span class="bos-deger">—</span>
+                        {% endif %}
+                    </td>
                     <td class="td-tarih">{{ k.olusturma_tarihi }}</td>
                     <td class="td-islem">
                         {% if k.rol != 'admin' %}
@@ -143,8 +166,7 @@
         </table>
     </div>
 
-    <!-- Oyun Bilgisi Kartı (bilgi amaçlı) -->
-         <!-- Oyun Atama Bölümü -->
+    <!-- Oyun Atama Bölümü -->
     <h2 class="liste-baslik">🎮 Bölümlere Oyun Ata</h2>
 
     <div class="atama-bolum-wrapper">
@@ -175,7 +197,7 @@
         {% endfor %}
     </div>
 
-    <h2 class="liste-baslik">🎮 Sistemdeki Oyunlar ({{ oyunlar|length }})</h2>
+    <!-- Sistemdeki Oyunlar -->
     <h2 class="liste-baslik">🎮 Sistemdeki Oyunlar ({{ oyunlar|length }})</h2>
 
     <div class="oyun-bilgi-grid">

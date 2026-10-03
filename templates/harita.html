@@ -71,6 +71,9 @@
                 </div>
             </div>
             <p class="rutbe">Rütbe: <strong>{{ rutbe }}</strong></p>
+            {% if session.get('rol') == 'ogrenci' %}
+<p class="rutbe">Sınıf: <strong>{{ session.get('sinif', 1) }}. Sınıf</strong></p>
+{% endif %}
             <div class="rozet-listesi">
                 {% for r in rozetler %}
                     <span class="rozet" title="{{ r.ad }}">{{ r.ikon }} {{ r.ad }}</span>

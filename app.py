@@ -13,16 +13,28 @@ app.secret_key = "cok-gizli-bir-anahtar-degistir-bunu"
 # YARDIMCI FONKSİYONLAR
 # ============================================
 
-def atama_listesi_getir(ana_bolum):
-    """Belirli bir bölümdeki oyun atamalarını getir."""
+def atama_listesi_getir(ana_bolum, sinif=None):
+    """Belirli bir bölümdeki oyun atamalarını getir.
+    sinif verilirse sadece o sınıfa uygun oyunları döndürür.
+    """
     conn = db.baglan()
     imlec = conn.cursor()
-    imlec.execute("""
-        SELECT id, sira, oyun_no, ozel_veri
-        FROM oyun_atamalari
-        WHERE ana_bolum = ?
-        ORDER BY sira
-    """, (ana_bolum,))
+    if sinif:
+        # SQL LIKE ile "1,2,3,4" içinde "1" var mı diye kontrol
+        imlec.execute("""
+            SELECT id, sira, oyun_no, siniflar, ozel_veri
+            FROM oyun_atamalari
+            WHERE ana_bolum = ?
+              AND (',' || siniflar || ',') LIKE ?
+            ORDER BY sira
+        """, (ana_bolum, f"%,{sinif},%"))
+    else:
+        imlec.execute("""
+            SELECT id, sira, oyun_no, siniflar, ozel_veri
+            FROM oyun_atamalari
+            WHERE ana_bolum = ?
+            ORDER BY sira
+        """, (ana_bolum,))
     sonuclar = [dict(r) for r in imlec.fetchall()]
     conn.close()
     return sonuclar
@@ -42,16 +54,26 @@ def atama_sayisi(ana_bolum):
 
 
 def biten_bolumleri_getir(ogrenci_id):
-    """Öğrencinin bitirdiği bölümlerin no'larını döndür."""
+    """Öğrencinin bitirdiği bölümlerin no'larını döndür.
+    Sadece öğrencinin sınıfına atanmış oyunlar sayılır.
+    """
     conn = db.baglan()
     imlec = conn.cursor()
+
+    # Öğrencinin sınıfını öğren
+    imlec.execute("SELECT sinif FROM kullanicilar WHERE id = ?", (ogrenci_id,))
+    row = imlec.fetchone()
+    sinif = row["sinif"] if row and row["sinif"] else 1
+
     biten = set()
     for b in bl.ANA_BOLUMLER:
         no = b["no"]
-        imlec.execute(
-            "SELECT DISTINCT oyun_no FROM oyun_atamalari WHERE ana_bolum = ?",
-            (no,)
-        )
+        # Sınıfa uygun atamalar
+        imlec.execute("""
+            SELECT DISTINCT oyun_no FROM oyun_atamalari
+            WHERE ana_bolum = ?
+              AND (',' || siniflar || ',') LIKE ?
+        """, (no, f"%,{sinif},%"))
         atanmis = {r["oyun_no"] for r in imlec.fetchall()}
         if not atanmis:
             continue
@@ -216,6 +238,14 @@ def giris_yap():
         session["rol"] = kullanici["rol"]
         session["ad_soyad"] = kullanici["ad_soyad"]
         session["avatar"] = kullanici["avatar"] if "avatar" in kullanici.keys() and kullanici["avatar"] else "🧑‍🎓"
+        # Sınıf bilgisi (öğrenci için)
+        if kullanici["rol"] == "ogrenci":
+            try:
+                session["sinif"] = kullanici["sinif"] if kullanici["sinif"] else 1
+            except (KeyError, IndexError):
+                session["sinif"] = 1
+        else:
+            session["sinif"] = 0
         return yonlendir_rol(kullanici["rol"])
     else:
         return render_template("giris.html", hata="Kullanıcı adı veya şifre yanlış!")
@@ -357,8 +387,16 @@ def bolum_detay(no):
         if (no - 1) not in biten:
             return redirect(url_for("harita"))
 
-    # Bu bölümdeki oyun atamaları
-    atamalar = atama_listesi_getir(no)
+    # Öğrencinin sınıfını öğren
+    conn = db.baglan()
+    imlec = conn.cursor()
+    imlec.execute("SELECT sinif FROM kullanicilar WHERE id = ?", (ogrenci_id,))
+    row = imlec.fetchone()
+    ogrenci_sinif = row["sinif"] if row and row["sinif"] else 1
+    conn.close()
+
+    # Bu bölümdeki (sınıfa uygun) oyun atamaları
+    atamalar = atama_listesi_getir(no, sinif=ogrenci_sinif)
 
     # Öğrencinin ilerlemesi
     conn = db.baglan()
@@ -406,8 +444,17 @@ def oyun_oyna(ana_no, oyun_no):
 
     oyun = {**oyun, "no": oyun_no}
 
-    # Bu oyun bu bölümde mi?
-    atamalar = atama_listesi_getir(ana_no)
+    # Öğrencinin sınıfını öğren
+    ogrenci_id = session["kullanici_id"]
+    conn = db.baglan()
+    imlec = conn.cursor()
+    imlec.execute("SELECT sinif FROM kullanicilar WHERE id = ?", (ogrenci_id,))
+    row = imlec.fetchone()
+    ogrenci_sinif = row["sinif"] if row and row["sinif"] else 1
+    conn.close()
+
+    # Bu oyun bu bölümde ve bu sınıfa uygun mu?
+    atamalar = atama_listesi_getir(ana_no, sinif=ogrenci_sinif)
     if not any(a["oyun_no"] == oyun_no for a in atamalar):
         return "Bu oyun bu bölümde değil", 404
 
@@ -1006,7 +1053,7 @@ def admin_panel():
     imlec = conn.cursor()
 
     imlec.execute("""
-        SELECT id, kullanici_adi, ad_soyad, rol, olusturma_tarihi
+        SELECT id, kullanici_adi, ad_soyad, rol, sinif, olusturma_tarihi
         FROM kullanicilar
         ORDER BY
             CASE rol
@@ -1065,6 +1112,7 @@ def admin_kullanici_ekle():
     sifre = request.form.get("sifre", "").strip()
     rol = request.form.get("rol", "ogrenci")
     ad_soyad = request.form.get("ad_soyad", "").strip()
+    sinif = int(request.form.get("sinif", 1))
 
     hata = None
     if not kullanici_adi or len(kullanici_adi) < 3:
@@ -1089,8 +1137,8 @@ def admin_kullanici_ekle():
 
     try:
         imlec.execute(
-            "INSERT INTO kullanicilar (kullanici_adi, sifre, rol, ad_soyad) VALUES (?, ?, ?, ?)",
-            (kullanici_adi, sifre, rol, ad_soyad)
+            "INSERT INTO kullanicilar (kullanici_adi, sifre, rol, ad_soyad, sinif) VALUES (?, ?, ?, ?, ?)",
+            (kullanici_adi, sifre, rol, ad_soyad, sinif)
         )
         conn.commit()
         conn.close()
@@ -1198,6 +1246,12 @@ def admin_oyun_ata():
 
     ana = int(request.form.get("ana", 0))
     oyun_no = int(request.form.get("oyun_no", 0))
+    siniflar_liste = request.form.getlist("siniflar")  # checkbox listesi
+
+    if not siniflar_liste:
+        return redirect(url_for("admin_oyun_atama", ana=ana, hata="En az bir sınıf seçmelisin!"))
+
+    siniflar_str = ",".join(sorted(siniflar_liste))
 
     if not (ana and oyun_no):
         return redirect(url_for("admin_panel"))
@@ -1213,8 +1267,8 @@ def admin_oyun_ata():
 
     try:
         imlec.execute(
-            "INSERT INTO oyun_atamalari (ana_bolum, sira, oyun_no) VALUES (?, ?, ?)",
-            (ana, yeni_sira, oyun_no)
+            "INSERT INTO oyun_atamalari (ana_bolum, sira, oyun_no, siniflar) VALUES (?, ?, ?, ?)",
+            (ana, yeni_sira, oyun_no, siniflar_str)
         )
         conn.commit()
         mesaj = f"✅ Oyun eklendi (sıra {yeni_sira})"

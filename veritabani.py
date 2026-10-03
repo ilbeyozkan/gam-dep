@@ -28,6 +28,7 @@ def tablolari_olustur():
             seri_gun INTEGER DEFAULT 0,
             son_oynama_tarihi TEXT,
             harcanan_yildiz INTEGER DEFAULT 0,
+            sinif INTEGER DEFAULT 1,
             olusturma_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -75,6 +76,7 @@ def tablolari_olustur():
             ana_bolum INTEGER NOT NULL,
             sira INTEGER NOT NULL,
             oyun_no INTEGER NOT NULL,
+            siniflar TEXT DEFAULT '1,2,3,4',
             ozel_veri TEXT,
             olusturma_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(ana_bolum, sira)
