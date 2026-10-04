@@ -79,6 +79,66 @@ console.log(">>> OYUN SCRIPT BAŞLADI <<<");
 let sesDevamEdiyor = false;
 
 // ============================================
+// 🎤 EN İYİ TÜRKÇE SES SEÇİCİ
+// ============================================
+let enIyiTurkceSes = null;
+
+function enIyiSesiBul() {
+    if (!("speechSynthesis" in window)) return null;
+
+    const sesler = window.speechSynthesis.getVoices();
+    if (!sesler || sesler.length === 0) return null;
+
+    // 1. Öncelik: Google Türkçe (en doğal)
+    let ses = sesler.find(function (s) {
+        return s.lang === "tr-TR" && s.name.toLowerCase().includes("google");
+    });
+    if (ses) return ses;
+
+    // 2. Yandex Türkçe
+    ses = sesler.find(function (s) {
+        return s.lang === "tr-TR" && s.name.toLowerCase().includes("yandex");
+    });
+    if (ses) return ses;
+
+    // 3. Microsoft Tolga (erkek ses)
+    ses = sesler.find(function (s) {
+        return s.lang === "tr-TR" && s.name.toLowerCase().includes("tolga");
+    });
+    if (ses) return ses;
+
+    // 4. Microsoft genel Türkçe
+    ses = sesler.find(function (s) {
+        return s.lang === "tr-TR" && s.name.toLowerCase().includes("microsoft");
+    });
+    if (ses) return ses;
+
+    // 5. Herhangi bir tr-TR ses
+    ses = sesler.find(function (s) {
+        return s.lang === "tr-TR" || s.lang === "tr";
+    });
+    if (ses) return ses;
+
+    return null;
+}
+
+function sesleriHazirla() {
+    enIyiTurkceSes = enIyiSesiBul();
+    if (enIyiTurkceSes) {
+        console.log("🎤 Seçilen Türkçe ses:", enIyiTurkceSes.name, "/", enIyiTurkceSes.lang);
+    } else {
+        console.log("⚠️ Türkçe ses bulunamadı, tarayıcı varsayılanı kullanılacak.");
+    }
+}
+
+if ("speechSynthesis" in window) {
+    sesleriHazirla();
+    window.speechSynthesis.onvoiceschanged = sesleriHazirla;
+    setTimeout(sesleriHazirla, 500);
+    setTimeout(sesleriHazirla, 1500);
+}
+
+// ============================================
 // SESLİ OKUMA (TTS)
 // ============================================
 function sesliOku(metin) {
@@ -92,9 +152,12 @@ function sesliOku(metin) {
     setTimeout(function () {
         const k = new SpeechSynthesisUtterance(metin);
         k.lang = "tr-TR";
-        k.rate = 0.85;
-        k.pitch = 1.1;
+        k.rate = 1.0;      // 🎯 Normal hız (eski: 0.85)
+        k.pitch = 1.0;     // 🎯 Normal ton (eski: 1.1)
         k.volume = 1.0;
+        if (enIyiTurkceSes) {
+            k.voice = enIyiTurkceSes;
+        }
         k.onend = function () { sesDevamEdiyor = false; };
         k.onerror = function () { sesDevamEdiyor = false; };
         window.speechSynthesis.speak(k);
@@ -118,9 +181,12 @@ function sesliOkuSirayla(metinler) {
         const metin = metinler[index];
         const k = new SpeechSynthesisUtterance(metin);
         k.lang = "tr-TR";
-        k.rate = (index === 0) ? 0.85 : 0.72;
-        k.pitch = 1.1;
+        k.rate = (index === 0) ? 1.0 : 0.95;   // 🎯 Soru normal, cümle hafif yavaş
+        k.pitch = 1.0;                          // 🎯 Normal ton
         k.volume = 1.0;
+        if (enIyiTurkceSes) {
+            k.voice = enIyiTurkceSes;
+        }
         k.onend = function () {
             index++;
             if (index < metinler.length) {
