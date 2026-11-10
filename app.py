@@ -3,6 +3,7 @@ import veritabani as db
 import bolumler as bl
 import oyun_verileri as ov
 import json
+import os
 from datetime import date, timedelta
 
 app = Flask(__name__)
@@ -1462,6 +1463,18 @@ def admin_oyun_icerik_kaydet(atama_id):
 # ============================================
 # UYGULAMAYI BAŞLAT
 # ============================================
+# ============================================
+# PWA SERVICE WORKER
+# ============================================
+from flask import send_from_directory
 
+@app.route("/sw.js")
+def service_worker():
+    """Service Worker'ı kök dizinden sun (kapsam sorunu için)."""
+    return send_from_directory(
+        os.path.join(app.root_path, "static", "js"),
+        "sw.js",
+        mimetype="application/javascript"
+    )
 if __name__ == "__main__":
     app.run(debug=True)

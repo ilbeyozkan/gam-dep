@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block baslik %}Okuma Oyunu{% endblock %}</title>
+    <!-- ============================================ -->
+<!-- PWA META ETİKETLERİ -->
+<!-- ============================================ -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#764ba2">
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="/static/img/icon-192.png">
+
+<!-- Apple iOS Desteği -->
+<link rel="apple-touch-icon" href="/static/img/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OYUN-DEP">
+
+<!-- Android Desteği -->
+<meta name="mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/stil.css') }}">
 </head>
 <body>
@@ -347,6 +363,7 @@
             }
         }
     </script>
-
+<!-- PWA Service Worker Kaydı -->
+<script src="/static/js/pwa.js"></script>
 </body>
 </html>
