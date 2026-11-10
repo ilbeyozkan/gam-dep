@@ -247,17 +247,7 @@
             document.removeEventListener("click", ilk);
         }, { once: true });
 
-        // Buton tıklama seslerini otomatik bağla
-        document.addEventListener("click", function (e) {
-            if (!seslerAcik) return;
-            // Ses toggle butonunun kendi tıklama sesi ayrıca çalmasın
-            if (e.target.closest("#ses-toggle-btn")) return;
-            
-            const hedef = e.target.closest("button, .bolum-btn, .oyun-btn, .cevap-btn, .harf-btn, .kafiye-btn, .cumle-btn, .secim-chip, .onayla-btn, .avatar-secenek, .ekipman-btn, .siralama-link-btn");
-            if (hedef && !hedef.disabled) {
-                sesButon();
-            }
-        });
+    
 
         // ============================================
         // SESLİ OKUMAYI GÜNCELLE (ses kapalıysa durdur)
